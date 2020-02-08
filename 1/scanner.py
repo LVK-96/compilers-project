@@ -15,6 +15,10 @@ def strip_from_start(string, substring):
     return string.replace(substring, "", 1)
 
 
+def report_error(discarded, lineno):
+    print(f"line {lineno}: {discarded}, Invalid input")
+
+
 def match_whitespace(string, substring, lineno):
     if substring.isspace():
         if (substring == "\n"):
@@ -94,12 +98,20 @@ def match_keyword(string, substring):
 
 def match_id(string, substring):
     if substring.isalpha():
-        for char in string[1:]:
+        for i, char in enumerate(string[1:]):
             if char.isdigit() or char.isalpha():
                 substring += char
-            else:
+                continue
+
+            n = string[i + 1] if i + 1 < len(string) else ""
+            if char.isspace() or (char in SYMBOL) or (char == "/" and (n == "*" or n == "/")):
                 string = strip_from_start(string, substring)
                 break
+
+            else:
+                substring += char
+                string = strip_from_start(string, substring)
+                return False, string, substring
 
         return True, string, substring
 
@@ -147,16 +159,22 @@ def match(string, lineno):
         token = "id"
         return new_string, token, matched_string, lineno
 
-    sys.exit()
+    # Error, matched_string contains sequence that caused the error
+    elif (not matched and new_string and matched_string):
+        report_error(matched_string, lineno)
+        return new_string, None, matched_string, lineno
+
+    # Error
+    report_error(substring, lineno)
+    new_string = strip_from_start(string, substring)
+    return new_string, None, substring, lineno
+
+
 
 def write_output(token, substring, lineno, out):
     if not lineno in out:
         out[lineno] = []
     out[lineno].append((token, substring))
-
-
-def report_error(discarded, lineno):
-    print(f"line {lineno}: {discarded}, Invalid input")
 
 
 def handle_match(token, substring, lineno, symbol_table, out):
@@ -168,12 +186,13 @@ def handle_match(token, substring, lineno, symbol_table, out):
 
 def get_next_token(data, symbol_table, lineno, out):
     data, token, substring, new_lineno = match(data, lineno)
-    handle_match(token, substring, lineno, symbol_table, out)
+    if token:
+        handle_match(token, substring, lineno, symbol_table, out)
     return data, new_lineno
 
 
 def main():
-    with open("no_errors.txt") as f:
+    with open("example.txt") as f:
         data = f.read()
         data = data.rstrip("\n")
         f.close
