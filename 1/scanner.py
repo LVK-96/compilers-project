@@ -11,12 +11,26 @@ SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
           "+", "-", "*", "=", "<"]
 KEYWORD = ["if", "else", "void", "int", "while", "break", "continue", "switch", "default", "case", "return"]
 
+def starts_valid_token(char, n):
+    return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
+
 def strip_from_start(string, substring):
     return string.replace(substring, "", 1)
 
 
 def report_error(discarded, lineno):
     print(f"line {lineno}: {discarded}, Invalid input")
+
+def gather_invalid_char(string):
+    substring = ""
+    for i, char in enumerate(string):
+        n = string[i + 1] if i + 1 < len(string) else None
+        if starts_valid_token(char, n):
+            break
+
+        substring += char
+
+    return substring
 
 
 def match_whitespace(string, substring, lineno):
@@ -46,11 +60,26 @@ def match_num(string, substring):
 
 def match_symbol(string, substring):
     if substring in SYMBOL:
-        if substring == "=" and string[1] == "=":
-            substring += string[1]
+        if substring != "=" and substring in SYMBOL:
             string = strip_from_start(string, substring)
+            return True, string, substring
+
+        n = string[1] if 1 < len(string) else None
+        if substring == "=" and n == "=":
+            substring += n
+            string = strip_from_start(string, substring)
+            return True, string, substring
+
+        nn = string[2] if 2 < len(string) else None
+        if (substring == "=" and n != "=" and starts_valid_token(n, nn)):
+            string = strip_from_start(string, substring)
+            return True, string, substring
+
         else:
+            # Error
+            substring += gather_invalid_char(string[1:])
             string = strip_from_start(string, substring)
+            return False, string, substring
 
         return True, string, substring
 
@@ -103,15 +132,16 @@ def match_id(string, substring):
                 substring += char
                 continue
 
-            n = string[i + 1] if i + 1 < len(string) else ""
-            if char.isspace() or (char in SYMBOL) or (char == "/" and (n == "*" or n == "/")):
+            n = string[1:][i + 1] if i + 1 < len(string[1:]) else ""
+            if starts_valid_token(char, n):
                 string = strip_from_start(string, substring)
                 break
 
             else:
-                substring += char
                 string = strip_from_start(string, substring)
-                return False, string, substring
+                second_substring = gather_invalid_char(string)
+                string = strip_from_start(string, second_substring)
+                return False, string, substring + second_substring
 
         return True, string, substring
 
@@ -140,6 +170,11 @@ def match(string, lineno):
         token = "symbol"
         return new_string, token, matched_string, lineno
 
+    # Error, matched_string contains sequence that caused the error
+    elif (not matched and matched_string):
+        report_error(matched_string, lineno)
+        return new_string, None, matched_string, lineno
+
     res = match_comment(string, substring, lineno)
     matched = res[0]
     new_string = res[1]
@@ -160,7 +195,7 @@ def match(string, lineno):
         return new_string, token, matched_string, lineno
 
     # Error, matched_string contains sequence that caused the error
-    elif (not matched and new_string and matched_string):
+    elif (not matched and matched_string):
         report_error(matched_string, lineno)
         return new_string, None, matched_string, lineno
 
