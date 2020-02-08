@@ -102,7 +102,11 @@ def match_id(string, substring):
 def match(string, lineno):
     substring = string[0]
 
-    matched, new_string, matched_string, new_lineno = match_whitespace(string, substring, lineno)
+    res = match_whitespace(string, substring, lineno)
+    matched = res[0]
+    new_string = res[1]
+    matched_string = res[2]
+    new_lineno = res[3]
     if matched:
         token = "whitespace"
         return new_string, token, matched_string, new_lineno
@@ -117,7 +121,11 @@ def match(string, lineno):
         token = "symbol"
         return new_string, token, matched_string, lineno
 
-    matched, new_string, matched_string, new_lineno = match_comment(string, substring, lineno)
+    res = match_comment(string, substring, lineno)
+    matched = res[0]
+    new_string = res[1]
+    matched_string = res[2]
+    new_lineno = res[3]
     if matched:
         token = "comment"
         return new_string, token, matched_string, new_lineno
