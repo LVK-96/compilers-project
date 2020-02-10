@@ -1,7 +1,7 @@
 #!/bin/python
 
 """
-Compare two files (case-insensitive and doesnt take into account whitespace
+Compare two files (case-insensitive and doesnt take into account whitespace)
 Usage: are_contents_equal file1 file2
 """
 
