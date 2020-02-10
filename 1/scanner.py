@@ -37,18 +37,26 @@ def gather_invalid_char(string):
     return substring
 
 
-def match_whitespace(string, substring, lineno):
+def report_error(discarded, lineno, reason, errors):
+    error_msg = f"line {lineno}: {discarded}, {reason}"
+    if "\n" in discarded:
+        error_msg = f"line {lineno}: {discarded[:10]}..., {reason}"
+
+    errors.append(error_msg)
+
+
+def match_whitespace(string, substring, lineno, errors):
     if substring.isspace():
         if (substring == "\n"):
             lineno += 1
 
         string = strip_from_start(string, substring)
-        return True, string, "whitespace", substring, lineno
+        return "WHITESPACE", string, substring, lineno
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_num(string, substring, lineno):
+def match_num(string, substring, lineno, errors):
     if substring.isdigit():
         for char in string[1:]:
             if char.isdigit():
@@ -58,49 +66,55 @@ def match_num(string, substring, lineno):
                 break
 
             else:
+                # Error
                 substring += char
+                substring += gather_invalid_char(string[len(substring):])
                 string = strip_from_start(string, substring)
-                second_substring = gather_invalid_char(string[1:])
-                string = strip_from_start(string, second_substring)
-                return False, string, None, substring + second_substring, lineno
+                report_error(substring, lineno, "Invalid number", errors)
+                return None, string, substring + second_substring, lineno
 
         string = strip_from_start(string, substring)
-        return True, string, "num", substring, lineno
+        return "NUM", string, substring, lineno
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_symbol(string, substring, lineno):
+def match_symbol(string, substring, lineno, errors):
     if substring in SYMBOL:
         n = string[1] if 1 < len(string) else None
         nn = string[2] if 2 < len(string) else None
         if substring != "=" and substring in SYMBOL and starts_valid_token(n, nn):
             string = strip_from_start(string, substring)
-            return True, string, "symbol", substring, lineno
+            return "SYMBOL", string, substring, lineno
 
-        if substring == "=" and n == "=":
+        if substring == "=" and n == "=": # TODO: This will propably break with i.e ==!
             substring += n
             string = strip_from_start(string, substring)
-            return True, string, "symbol", substring, lineno
+            return "SYMBOL", string, substring, lineno
 
         if (substring == "=" and n != "=" and starts_valid_token(n, nn)):
             string = strip_from_start(string, substring)
-            return True, string, "symbol", substring, lineno
+            return "SYMBOL", string, substring, lineno
 
         else:
             # Error
             substring += gather_invalid_char(string[1:])
             string = strip_from_start(string, substring)
-            return False, string, None, substring, lineno
+            if substring[:2] == "*/":
+                report_error(substring, lineno, "Unmatched */", errors)
+            else:
+                report_error(substring, lineno, "Invalid symbol", errors)
+            return None, string, substring, lineno
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_comment(string, substring, lineno):
+def match_comment(string, substring, lineno, errors):
     if substring == "/":
         n = string[1] if 1 < len(string) else None
         substring += n
         if n == "*":
+            orig_lineno = lineno
             prev = ""
             for char in string[2:]:
                 substring += char
@@ -109,12 +123,14 @@ def match_comment(string, substring, lineno):
 
                 if prev == "*" and char == "/":
                     string = strip_from_start(string, substring)
-                    return True, string, "comment", substring, lineno
+                    return "COMMENT", string, substring, lineno
 
                 prev = char
 
+            # Error
             string = strip_from_start(string, substring)
-            return False, string, None, substring, lineno
+            report_error(substring, orig_lineno, "Unclosed comment", errors)
+            return None, string, substring, lineno
 
         if n == "/":
             for char in string[2:]:
@@ -124,13 +140,13 @@ def match_comment(string, substring, lineno):
                     break
 
             string = strip_from_start(string, substring)
-            return True, string, "coment", substring, lineno
+            return "COMMENT", string, substring, lineno
 
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_id(string, substring, lineno):
+def match_id(string, substring, lineno, errors):
     for i, char in enumerate(string[1:]):
         n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
         if char.isdigit() or char.isalpha():
@@ -138,66 +154,63 @@ def match_id(string, substring, lineno):
 
         elif starts_valid_token(char, n):
             string = strip_from_start(string, substring)
-            return True, string, "id", substring, lineno
+            return "ID", string, substring, lineno
 
         else:
+            # Error
             substring += gather_invalid_char(string[len(substring):])
             string = strip_from_start(string, substring)
-            return False, string, None, substring, lineno
+            report_error(substring, lineno, "Invalid id", errors)
+            return None, string, substring, lineno
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_keyword(string, substring, lineno):
+def match_keyword(string, substring, lineno, errors):
     for i, char in enumerate(string[1:]):
         n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
         substring += char
         if substring in KEYWORD:
             string = strip_from_start(string, substring)
-            return True, string, "keyword", substring, lineno
+            return "KEYWORD", string, substring, lineno
 
         elif (char.isalpha() or char.isdigit()) and substring not in [s for s in SYMBOL[:len(substring)]]:
             # It might be an id instead
             string = strip_from_start(string, substring[:-1])
-            res = match_id(string, substring[-1], lineno)
-            substring = substring[:-1] + res[3]
-            return res[:3] + (substring, ) + res[4:]
+            res = match_id(string, substring[-1], lineno, errors)
+            substring = substring[:-1] + res[2]
+            return res[:2] + (substring, ) + res[3:]
 
         elif starts_valid_token(char, n):
             # It is an id
             string = strip_from_start(string, substring[:-1])
-            return True, string, "id", substring[:-1], lineno
+            return "ID", string, substring[:-1], lineno
 
-    return False, None, None, None, lineno
+    return None, None, None, lineno
 
 
-def match_keyword_or_id(string, substring, lineno):
+def match_keyword_or_id(string, substring, lineno, errors):
     if substring in [s[0] for s in KEYWORD]:
-        return match_keyword(string, substring, lineno)
+        return match_keyword(string, substring, lineno, errors)
 
     elif substring.isalpha():
-        return match_id(string, substring, lineno)
+        return match_id(string, substring, lineno, errors)
 
-    return False, None, None, None, lineno
-
-
-def report_error(discarded, lineno):
-    print(f"line {lineno}: {discarded}, Invalid input")
+    return None, None, None, lineno
 
 
-def do_matching(string, substring, lineno, match_function):
-    res = match_function(string, substring, lineno)
-    success = res[0]
+def do_matching(string, substring, lineno, match_function, errors):
+    # All matching function return (token_type, new_string, matched_string, new_lineno)
+    res = match_function(string, substring, lineno, errors)
+    token_type = res[0]
     new_string = res[1]
-    token_type = res[2]
-    matched_string = res[3]
-    new_lineno = res[4]
-    if success:
+    matched_string = res[2]
+    new_lineno = res[3]
+    if token_type:
         return True, new_string, token_type, matched_string, new_lineno
 
-    elif (not success and matched_string):
+    elif (not token_type and matched_string):
         # There was an error -> Report
-        report_error(matched_string, new_lineno)
         return True, new_string, None, matched_string, new_lineno
 
     else:
@@ -205,53 +218,81 @@ def do_matching(string, substring, lineno, match_function):
         return False, None, None, None, None
 
 
-def match(string, lineno):
+def match(string, lineno, errors):
     substring = string[0]
-    res = do_matching(string, substring, lineno, match_whitespace)
+    res = do_matching(string, substring, lineno, match_whitespace, errors)
     if res[0]:
         return res[1:]
 
-    res = do_matching(string, substring, lineno, match_num)
+    res = do_matching(string, substring, lineno, match_num, errors)
     if res[0]:
         return res[1:]
 
-    res = do_matching(string, substring, lineno, match_symbol)
+    res = do_matching(string, substring, lineno, match_symbol, errors)
     if res[0]:
         return res[1:]
 
-    res = do_matching(string, substring, lineno, match_comment)
+    res = do_matching(string, substring, lineno, match_comment, errors)
     if res[0]:
         return res[1:]
 
-    res = do_matching(string, substring, lineno, match_keyword_or_id)
+    res = do_matching(string, substring, lineno, match_keyword_or_id, errors)
     if res[0]:
         return res[1:]
 
     # Error
     substring += gather_invalid_char(string[1:])
     new_string = strip_from_start(string, substring)
-    report_error(substring, lineno)
+    report_error(substring, lineno, "Unexpected error", errors)
     return new_string, None, substring, lineno
 
 
-def write_output(token, substring, lineno, out):
-    if not lineno in out:
-        out[lineno] = []
-    out[lineno].append((token, substring))
+def save_token(token, substring, lineno, tokens):
+    if not lineno in tokens:
+        tokens[lineno] = []
+    tokens[lineno].append((token, substring))
 
 
-def handle_match(token, substring, lineno, symbol_table, out):
+def handle_match(token, substring, lineno, tokens, symbol_table):
     if token == "id":
         symbol_table.append(substring)
 
-    write_output(token, substring, lineno, out)
+    save_token(token, substring, lineno, tokens)
 
 
-def get_next_token(data, symbol_table, lineno, out):
-    data, token, substring, new_lineno = match(data, lineno)
+def get_next_token(data, lineno, tokens, symbol_table, errors):
+    data, token, substring, new_lineno = match(data, lineno, errors)
     if token:
-        handle_match(token, substring, lineno, symbol_table, out)
+        handle_match(token, substring, lineno, tokens, symbol_table)
     return data, new_lineno
+
+
+def write_tokens_to_file(tokens):
+    with open("tokens.txt", "w") as f:
+        for key in tokens:
+            tokens[key] = [t for t in tokens[key] if t[0] not in ["WHITESPACE", "COMMENT"]]
+            if len(tokens[key]) > 0:
+                f.write(f"{key}.")
+                for token in tokens[key]:
+                    f.write(f" ({token[0]}, {token[1]})")
+                f.write(f"\n")
+
+        f.close()
+
+def write_symbol_table_to_file(symbol_table):
+    with open("symbol_table.txt", "w") as f:
+        for i, symbol in enumerate(symbol_table):
+            f.write(f"{i + 1}. {symbol}\n")
+
+        f.close()
+
+
+def write_errors_to_file(errors):
+    with open("lexical_errors.txt", "w") as f:
+        for i, error in enumerate(errors):
+            f.write(f"{error}\n")
+
+        f.close()
 
 
 def main():
@@ -260,22 +301,32 @@ def main():
         data = data.rstrip("\n")
         f.close
 
-    out = {}
     lineno = 1
+    tokens = {}
     symbol_table = ["if", "else", "void", "int", "while", "break", "continue",
                     "switch", "default", "case", "return"]
+    errors = []
     while data:
-        data, lineno = get_next_token(data, symbol_table, lineno, out)
+        data, lineno = get_next_token(data, lineno, tokens, symbol_table, errors)
 
     print("\nTokens:")
-    for key in out:
-        out[key] = [t for t in out[key] if t[0] not in ["whitespace", "comment"]]
-        if len(out[key]) > 0:
-            print(out[key])
+    tokens_print = {}
+    for key in tokens:
+        tokens_print[key] = [t for t in tokens[key] if t[0] not in ["whitespace", "comment"]]
+        if len(tokens_print[key]) > 0:
+            print(tokens_print[key])
 
-    symbol_table = list(dict.fromkeys(symbol_table))
+    symbol_table_print = list(dict.fromkeys(symbol_table))
     print("\nSymbol table:")
-    print(symbol_table)
+    print(symbol_table_print)
+
+    errors_print = list(dict.fromkeys(errors))
+    print("\nErrors:")
+    print(errors_print)
+
+    write_tokens_to_file(tokens)
+    write_symbol_table_to_file(symbol_table)
+    write_errors_to_file(errors)
 
 
 if __name__ == "__main__":
