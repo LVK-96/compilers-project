@@ -11,6 +11,7 @@ SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
           "+", "-", "*", "=", "<"]
 KEYWORD = ["if", "else", "void", "int", "while", "break", "continue", "switch", "default", "case", "return"]
 
+
 def starts_valid_token(char, n):
     if char and n:
         return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
@@ -19,12 +20,10 @@ def starts_valid_token(char, n):
     else:
         return True
 
+
 def strip_from_start(string, substring):
     return string.replace(substring, "", 1)
 
-
-def report_error(discarded, lineno):
-    print(f"line {lineno}: {discarded}, Invalid input")
 
 def gather_invalid_char(string):
     substring = ""
@@ -165,6 +164,10 @@ def match_id(string, substring, lineno):
         return True, string, substring, lineno
 
     return False, None, None, lineno
+
+
+def report_error(discarded, lineno):
+    print(f"line {lineno}: {discarded}, Invalid input")
 
 
 def do_matching(string, substring, lineno, token_type, match_function):
