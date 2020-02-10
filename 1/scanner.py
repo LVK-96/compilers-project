@@ -53,10 +53,8 @@ def match_num(string, substring):
                 break
             else:
                 substring += char
-                print(substring)
                 string = strip_from_start(string, substring)
                 second_substring = gather_invalid_char(string[1:])
-                print(second_substring)
                 string = strip_from_start(string, second_substring)
                 return False, string, substring + second_substring
 
