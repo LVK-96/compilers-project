@@ -12,7 +12,12 @@ SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
 KEYWORD = ["if", "else", "void", "int", "while", "break", "continue", "switch", "default", "case", "return"]
 
 def starts_valid_token(char, n):
-    return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
+    if char and n:
+        return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
+    elif char:
+        return char.isspace() or char.isalpha() or chra.isnum() or char in SYMBOL
+    else:
+        return True
 
 def strip_from_start(string, substring):
     return string.replace(substring, "", 1)
@@ -41,10 +46,10 @@ def match_whitespace(string, substring, lineno):
         string = strip_from_start(string, substring)
         return True, string, substring, lineno
 
-    return False, None, None, None
+    return False, None, None, lineno
 
 
-def match_num(string, substring):
+def match_num(string, substring, lineno):
     if substring.isdigit():
         for char in string[1:]:
             if char.isdigit():
@@ -56,40 +61,40 @@ def match_num(string, substring):
                 string = strip_from_start(string, substring)
                 second_substring = gather_invalid_char(string[1:])
                 string = strip_from_start(string, second_substring)
-                return False, string, substring + second_substring
+                return False, string, substring + second_substring, lineno
 
         string = strip_from_start(string, substring)
-        return True, string, substring
+        return True, string, substring, lineno
 
-    return False, None, None
+    return False, None, None, lineno
 
 
-def match_symbol(string, substring):
+def match_symbol(string, substring, lineno):
     if substring in SYMBOL:
-        if substring != "=" and substring in SYMBOL:
-            string = strip_from_start(string, substring)
-            return True, string, substring
-
         n = string[1] if 1 < len(string) else None
+        nn = string[2] if 2 < len(string) else None
+        if substring != "=" and substring in SYMBOL and starts_valid_token(n, nn):
+            string = strip_from_start(string, substring)
+            return True, string, substring, lineno
+
         if substring == "=" and n == "=":
             substring += n
             string = strip_from_start(string, substring)
-            return True, string, substring
+            return True, string, substring, lineno
 
-        nn = string[2] if 2 < len(string) else None
         if (substring == "=" and n != "=" and starts_valid_token(n, nn)):
             string = strip_from_start(string, substring)
-            return True, string, substring
+            return True, string, substring, lineno
 
         else:
             # Error
             substring += gather_invalid_char(string[1:])
             string = strip_from_start(string, substring)
-            return False, string, substring
+            return False, string, substring, lineno
 
-        return True, string, substring
+        return True, string, substring, lineno
 
-    return False, None, None
+    return False, None, None, lineno
 
 
 def match_comment(string, substring, lineno):
@@ -101,37 +106,45 @@ def match_comment(string, substring, lineno):
                 substring += char
                 if char == "\n":
                     lineno += 1
+
                 if prev == "*" and char == "/":
-                    break
+                    string = strip_from_start(string, substring)
+                    return True, string, substring, lineno
+
                 prev = char
 
+            string = strip_from_start(string, substring)
+            return False, string, substring, lineno
+
         if string[1] == "/":
+            substring += string[1]
             for char in string[2:]:
                 substring += char
                 if char == "\n":
                     lineno += 1
                     break
 
-        string = strip_from_start(string, substring)
-        return True, string, substring, lineno
-
-    return False, None, None, None
+            string = strip_from_start(string, substring)
+            return True, string, substring, lineno
 
 
-def match_keyword(string, substring):
+    return False, None, None, lineno
+
+
+def match_keyword(string, substring, lineno):
     if substring in [s[0] for s in KEYWORD]:
         for char in string[1:]:
             substring += char
             if substring in KEYWORD:
                 string = strip_from_start(string, substring)
-                return True, string, substring
+                return True, string, substring, lineno
             if len(substring) > len(max(KEYWORD, key=len)):
                 break
 
-    return False, None, None
+    return False, None, None, lineno
 
 
-def match_id(string, substring):
+def match_id(string, substring, lineno):
     if substring.isalpha():
         for i, char in enumerate(string[1:]):
             if char.isdigit() or char.isalpha():
@@ -147,72 +160,63 @@ def match_id(string, substring):
                 string = strip_from_start(string, substring)
                 second_substring = gather_invalid_char(string)
                 string = strip_from_start(string, second_substring)
-                return False, string, substring + second_substring
+                return False, string, substring + second_substring, lineno
 
-        return True, string, substring
+        return True, string, substring, lineno
 
-    return False, None, None
+    return False, None, None, lineno
+
+
+def do_matching(string, substring, lineno, token_type, match_function):
+    res = match_function(string, substring, lineno)
+    matched = res[0]
+    new_string = res[1]
+    matched_string = res[2]
+    new_lineno = res[3]
+    if matched:
+        return True, new_string, token_type, matched_string, new_lineno
+
+    elif (not matched and matched_string):
+        report_error(matched_string, new_lineno)
+        return True, new_string, None, matched_string, new_lineno
+
+    else:
+        return False, None, None, None, None
 
 
 def match(string, lineno):
     substring = string[0]
+    res = do_matching(string, substring, lineno, "whitespace", match_whitespace)
+    if res[0]:
+        return res[1:]
 
-    res = match_whitespace(string, substring, lineno)
-    matched = res[0]
-    new_string = res[1]
-    matched_string = res[2]
-    new_lineno = res[3]
-    if matched:
-        token = "whitespace"
-        return new_string, token, matched_string, new_lineno
+    res = do_matching(string, substring, lineno, "num", match_num)
+    if res[0]:
+        return res[1:]
 
-    matched, new_string, matched_string = match_num(string, substring)
-    if matched:
-        token = "num"
-        return new_string, token, matched_string, lineno
+    res = do_matching(string, substring, lineno, "symbol", match_symbol)
+    if res[0]:
+        return res[1:]
 
-    elif (not matched and matched_string):
-        report_error(matched_string, lineno)
-        return new_string, None, matched_string, lineno
+    res = do_matching(string, substring, lineno, "comment", match_comment)
+    if res[0]:
+        return res[1:]
 
-    matched, new_string, matched_string = match_symbol(string, substring)
-    if matched:
-        token = "symbol"
-        return new_string, token, matched_string, lineno
+    res = do_matching(string, substring, lineno, "keyword", match_keyword)
+    if res[0]:
+        return res[1:]
 
-    elif (not matched and matched_string):
-        report_error(matched_string, lineno)
-        return new_string, None, matched_string, lineno
-
-    res = match_comment(string, substring, lineno)
-    matched = res[0]
-    new_string = res[1]
-    matched_string = res[2]
-    new_lineno = res[3]
-    if matched:
-        token = "comment"
-        return new_string, token, matched_string, new_lineno
-
-    matched, new_string, matched_string = match_keyword(string, substring)
-    if matched:
-        token = "keyword"
-        return new_string, token, matched_string, lineno
-
-    matched, new_string, matched_string = match_id(string, substring)
-    if matched:
-        token = "id"
-        return new_string, token, matched_string, lineno
-
-    # Error, matched_string contains sequence that caused the error
-    elif (not matched and matched_string):
-        report_error(matched_string, lineno)
-        return new_string, None, matched_string, lineno
+    res = do_matching(string, substring, lineno, "id", match_id)
+    if res[0]:
+        return res[1:]
 
     # Error
+    string = strip_from_start(string, substring)
+    second_substring = gather_invalid_char(string)
+    new_string = strip_from_start(string, second_substring)
+    substring += second_substring
     report_error(substring, lineno)
-    new_string = strip_from_start(string, substring)
     return new_string, None, substring, lineno
-
 
 
 def write_output(token, substring, lineno, out):
@@ -236,7 +240,7 @@ def get_next_token(data, symbol_table, lineno, out):
 
 
 def main():
-    with open("T4/input.txt") as f:
+    with open("T6/input.txt") as f:
         data = f.read()
         data = data.rstrip("\n")
         f.close
