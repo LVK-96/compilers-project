@@ -1,0 +1,2 @@
+4.	(*/, Unmached */)
+13.	(/*this is ..., unclosed comment!)

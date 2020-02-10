@@ -49,8 +49,16 @@ def match_num(string, substring):
         for char in string[1:]:
             if char.isdigit():
                 substring += char
-            else:
+            elif char in SYMBOL or char.isspace():
                 break
+            else:
+                substring += char
+                print(substring)
+                string = strip_from_start(string, substring)
+                second_substring = gather_invalid_char(string[1:])
+                print(second_substring)
+                string = strip_from_start(string, second_substring)
+                return False, string, substring + second_substring
 
         string = strip_from_start(string, substring)
         return True, string, substring
@@ -165,12 +173,15 @@ def match(string, lineno):
         token = "num"
         return new_string, token, matched_string, lineno
 
+    elif (not matched and matched_string):
+        report_error(matched_string, lineno)
+        return new_string, None, matched_string, lineno
+
     matched, new_string, matched_string = match_symbol(string, substring)
     if matched:
         token = "symbol"
         return new_string, token, matched_string, lineno
 
-    # Error, matched_string contains sequence that caused the error
     elif (not matched and matched_string):
         report_error(matched_string, lineno)
         return new_string, None, matched_string, lineno
@@ -227,7 +238,7 @@ def get_next_token(data, symbol_table, lineno, out):
 
 
 def main():
-    with open("example.txt") as f:
+    with open("T4/input.txt") as f:
         data = f.read()
         data = data.rstrip("\n")
         f.close
