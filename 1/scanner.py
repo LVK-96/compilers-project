@@ -333,7 +333,7 @@ def main():
     with open("T6/input.txt") as f:
         data = f.read()
         data = data.rstrip("\n")
-        f.close
+        f.close()
 
     lineno = 1
     tokens = {}
