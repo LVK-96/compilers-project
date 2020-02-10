@@ -4,7 +4,7 @@ Jaakko Koskela 526050
 """
 
 
-import sys
+import sys # TODO: Remove this before turn in
 
 
 SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
@@ -329,8 +329,14 @@ def debug_prints(tokens, symbol_table, errors):
     print(errors_print)
 
 
-def main():
-    with open("T6/input.txt") as f:
+def main(argv):
+    filename = "input.txt"
+
+    # TODO: Remove this before turn in
+    if argv[0]:
+        filename = argv[0]
+
+    with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
         f.close()
@@ -343,7 +349,7 @@ def main():
     while data:
         data, lineno = get_next_token(data, lineno, tokens, symbol_table, errors)
 
-    debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
+    # debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)
@@ -351,4 +357,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argv = sys.argv[1:]
+    main(argv)
