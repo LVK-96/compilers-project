@@ -169,18 +169,20 @@ def match_id(string, substring, lineno):
 
 def do_matching(string, substring, lineno, token_type, match_function):
     res = match_function(string, substring, lineno)
-    matched = res[0]
+    success = res[0]
     new_string = res[1]
     matched_string = res[2]
     new_lineno = res[3]
-    if matched:
+    if success:
         return True, new_string, token_type, matched_string, new_lineno
 
-    elif (not matched and matched_string):
+    elif (not success and matched_string):
+        # There was an error -> Report
         report_error(matched_string, new_lineno)
         return True, new_string, None, matched_string, new_lineno
 
     else:
+        # Fall through to next matcher
         return False, None, None, None, None
 
 
@@ -211,10 +213,8 @@ def match(string, lineno):
         return res[1:]
 
     # Error
-    string = strip_from_start(string, substring)
-    second_substring = gather_invalid_char(string)
-    new_string = strip_from_start(string, second_substring)
-    substring += second_substring
+    substring += gather_invalid_char(string[1:])
+    new_string = strip_from_start(string, substring)
     report_error(substring, lineno)
     return new_string, None, substring, lineno
 
