@@ -99,8 +99,9 @@ def match_symbol(string, substring, lineno):
 
 def match_comment(string, substring, lineno):
     if substring == "/":
-        if string[1] == "*":
-            substring += string[1]
+        n = string[1] if 1 < len(string) else None
+        substring += n
+        if n == "*":
             prev = ""
             for char in string[2:]:
                 substring += char
@@ -116,8 +117,7 @@ def match_comment(string, substring, lineno):
             string = strip_from_start(string, substring)
             return False, string, substring, lineno
 
-        if string[1] == "/":
-            substring += string[1]
+        if n == "/":
             for char in string[2:]:
                 substring += char
                 if char == "\n":
