@@ -1,0 +1,2 @@
+Comment on last line OK
+'==' followed by an invalid char i.e. '==!'

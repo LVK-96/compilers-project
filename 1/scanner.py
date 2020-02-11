@@ -69,7 +69,10 @@ def match_num(string, substring, lineno, errors):
                 substring += char
                 substring += gather_invalid_char(string[len(substring):])
                 string = strip_from_start(string, substring)
-                report_error(substring, lineno, "Invalid number", errors)
+                if substring[:2] == "*/":
+                    report_error(substring, lineno, "Unmatched */", errors)
+                else:
+                    report_error(substring, lineno, "Invalid number", errors)
                 return None, string, substring, lineno
 
         string = strip_from_start(string, substring)
@@ -82,22 +85,25 @@ def match_symbol(string, substring, lineno, errors):
     if substring in SYMBOL:
         n = string[1] if 1 < len(string) else None
         nn = string[2] if 2 < len(string) else None
+        nnn = string[3] if 3 < len(string) else None
         if substring != "=" and substring in SYMBOL and starts_valid_token(n, nn):
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
-        if substring == "=" and n == "=": # TODO: This will propably break with i.e ==!
-            substring += n
+        elif (substring == "=" and n != "=" and starts_valid_token(n, nn)):
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
-        if (substring == "=" and n != "=" and starts_valid_token(n, nn)):
+        elif substring == "=" and n == "=" and starts_valid_token(nn, nnn):
+            substring += n
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
         else:
             # Error
-            substring += gather_invalid_char(string[1:])
+            if substring == "=" and n == "=":
+                substring += n
+            substring += gather_invalid_char(string[len(substring):])
             string = strip_from_start(string, substring)
             if substring[:2] == "*/":
                 report_error(substring, lineno, "Unmatched */", errors)
@@ -160,10 +166,13 @@ def match_id(string, substring, lineno, errors, carry_over=None):
             substring += gather_invalid_char(string[len(substring):])
             string = strip_from_start(string, substring)
             if (carry_over):
-                report_error(carry_over + substring, lineno, "Invalid input", errors)
+                substring = carry_over + substring
 
+            if substring[:2] == "*/":
+                report_error(substring, lineno, "Unmatched */", errors)
             else:
                 report_error(substring, lineno, "Invalid input", errors)
+
             return None, string, substring, lineno
 
     return None, None, None, lineno
@@ -197,7 +206,10 @@ def match_keyword(string, substring, lineno, errors):
             # Error
             substring += gather_invalid_char(string[len(substring):])
             string = strip_from_start(string, substring)
-            report_error(substring, lineno, "Invalid input", errors)
+            if substring[:2] == "*/":
+                report_error(substring, lineno, "Unmatched */", errors)
+            else:
+                report_error(substring, lineno, "Invalid input", errors)
             return None, string, substring, lineno
 
     return None, None, None, lineno
@@ -316,9 +328,8 @@ def debug_prints(tokens, symbol_table, errors):
     print("\nTokens:")
     tokens_print = {}
     for key in tokens:
-        tokens_print[key] = [t for t in tokens[key] if t[0] not in ["whitespace", "comment"]]
-        if len(tokens_print[key]) > 0:
-            print(tokens_print[key])
+        if len(tokens[key]) > 0:
+            print(tokens[key])
 
     symbol_table_print = list(dict.fromkeys(symbol_table))
     print("\nSymbol table:")
@@ -333,7 +344,7 @@ def main(argv):
     filename = "input.txt"
 
     # TODO: Remove this before turn in
-    if argv[0]:
+    if argv and argv[0]:
         filename = argv[0]
 
     with open(filename) as f:
@@ -349,7 +360,7 @@ def main(argv):
     while data:
         data, lineno = get_next_token(data, lineno, tokens, symbol_table, errors)
 
-    # debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
+    debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)
