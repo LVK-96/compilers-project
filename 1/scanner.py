@@ -87,11 +87,12 @@ def match_whitespace(string, substring, lineno, errors):
 
 def match_num(string, substring, lineno, errors):
     if substring.isdigit():
-        for char in string[1:]:
+        for i, char in enumerate(string[1:]):
+            n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
             if char.isdigit():
                 substring += char
 
-            elif char in SYMBOL or char.isspace():
+            elif starts_valid_token(char, n):
                 break
 
             else:
@@ -195,10 +196,12 @@ def match_keyword_or_id(string, substring, lineno, errors):
     if substring.isalpha():
         for i, char in enumerate(string[1:]):
             n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
+            print("substring: ", substring)
             if char.isdigit() or char.isalpha():
                 substring += char
 
             elif starts_valid_token(char, n):
+                print("starts valid token")
                 string = strip_from_start(string, substring)
                 if substring in KEYWORD:
                     return "KEYWORD", string, substring, lineno
@@ -213,6 +216,12 @@ def match_keyword_or_id(string, substring, lineno, errors):
                     lineno,
                     "Invalid input"
                 )
+
+        string = strip_from_start(string, substring)
+        if substring in KEYWORD:
+            return "KEYWORD", string, substring, lineno
+
+        return "ID", string, substring, lineno
 
     return None, None, None, lineno
 
@@ -361,7 +370,7 @@ def main(argv):
             data, lineno, tokens, symbol_table, errors)
 
     # TODO: delete this before turn in
-    # debug_prints(tokens, symbol_table, errors)
+    debug_prints(tokens, symbol_table, errors)
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)
