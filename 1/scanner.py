@@ -15,7 +15,7 @@ def starts_valid_token(char, n):
     if char and n:
         return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
     elif char:
-        return char.isspace() or char.isalpha() or chra.isnum() or char in SYMBOL
+        return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL
     else:
         return True
 
@@ -44,6 +44,19 @@ def report_error(discarded, lineno, reason, errors):
     errors.append(error_msg)
 
 
+def common_error_handler(errors, substring, string, lineno, message, carry_over=None):
+    substring += gather_invalid_char(string[len(substring):])
+    string = strip_from_start(string, substring)
+    if carry_over:
+        substring = carry_over + substring
+
+    if substring[:2] == "*/":
+        report_error(substring, lineno, "Unmatched */", errors)
+    else:
+        report_error(substring, lineno, message, errors)
+    return None, string, substring, lineno
+
+
 def match_whitespace(string, substring, lineno, errors):
     if substring.isspace():
         if (substring == "\n"):
@@ -67,13 +80,7 @@ def match_num(string, substring, lineno, errors):
             else:
                 # Error
                 substring += char
-                substring += gather_invalid_char(string[len(substring):])
-                string = strip_from_start(string, substring)
-                if substring[:2] == "*/":
-                    report_error(substring, lineno, "Unmatched */", errors)
-                else:
-                    report_error(substring, lineno, "Invalid number", errors)
-                return None, string, substring, lineno
+                return common_error_handler(errors, substring, string, lineno, "Invalid number")
 
         string = strip_from_start(string, substring)
         return "NUM", string, substring, lineno
@@ -103,13 +110,8 @@ def match_symbol(string, substring, lineno, errors):
             # Error
             if substring == "=" and n == "=":
                 substring += n
-            substring += gather_invalid_char(string[len(substring):])
-            string = strip_from_start(string, substring)
-            if substring[:2] == "*/":
-                report_error(substring, lineno, "Unmatched */", errors)
-            else:
-                report_error(substring, lineno, "Invalid symbol", errors)
-            return None, string, substring, lineno
+
+            return common_error_handler(errors, substring, string, lineno, "Invalid symbol")
 
     return None, None, None, lineno
 
@@ -162,18 +164,7 @@ def match_id(string, substring, lineno, errors, carry_over=None):
             return "ID", string, substring, lineno
 
         else:
-            # Error
-            substring += gather_invalid_char(string[len(substring):])
-            string = strip_from_start(string, substring)
-            if (carry_over):
-                substring = carry_over + substring
-
-            if substring[:2] == "*/":
-                report_error(substring, lineno, "Unmatched */", errors)
-            else:
-                report_error(substring, lineno, "Invalid input", errors)
-
-            return None, string, substring, lineno
+            return common_error_handler(errors, substring, string, lineno, "Invalid input", carry_over)
 
     return None, None, None, lineno
 
@@ -203,14 +194,7 @@ def match_keyword(string, substring, lineno, errors):
             return "ID", string, substring[:-1], lineno
 
         else:
-            # Error
-            substring += gather_invalid_char(string[len(substring):])
-            string = strip_from_start(string, substring)
-            if substring[:2] == "*/":
-                report_error(substring, lineno, "Unmatched */", errors)
-            else:
-                report_error(substring, lineno, "Invalid input", errors)
-            return None, string, substring, lineno
+            return common_error_handler(errors, substring, string, lineno, "Invalid input")
 
     return None, None, None, lineno
 
@@ -360,7 +344,7 @@ def main(argv):
     while data:
         data, lineno = get_next_token(data, lineno, tokens, symbol_table, errors)
 
-    debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
+    # debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)

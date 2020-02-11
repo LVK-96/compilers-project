@@ -1,2 +1,7 @@
 Comment on last line OK
-'==' followed by an invalid char i.e. '==!'
+'==' followed by an invalid char i.e. '==!' OK
+'==' followed by a invalid close comment i.e. '==*/' OK
+id followed by an invalid close comment i.e. 'aa*/' OK
+num followed by an invalid close comment i.e. '999*/' OK
+Empty file OK
+Invalid number i.e. '9a' OK
