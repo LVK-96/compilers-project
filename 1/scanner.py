@@ -4,18 +4,33 @@ Jaakko Koskela 526050
 """
 
 
-import sys # TODO: Remove this before turn in
+import sys  # TODO: Remove this before turn in
 
 
 SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
           "+", "-", "*", "=", "<"]
-KEYWORD = ["if", "else", "void", "int", "while", "break", "continue", "switch", "default", "case", "return"]
+KEYWORD = ["if", "else", "void", "int", "while", "break",
+           "continue", "switch", "default", "case", "return"]
+
 
 def starts_valid_token(char, n):
     if char and n:
-        return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL or (char == "/" and (n == "*" or n == "/"))
+        return (
+            char.isspace()
+            or char.isdigit()
+            or char.isalpha()
+            or char in SYMBOL
+            or (char == "/" and (n == "*" or n == "/"))
+        )
+
     elif char:
-        return char.isspace() or char.isdigit() or char.isalpha() or char in SYMBOL
+        return (
+            char.isspace()
+            or char.isdigit()
+            or char.isalpha()
+            or char in SYMBOL
+        )
+
     else:
         return True
 
@@ -44,7 +59,11 @@ def report_error(discarded, lineno, reason, errors):
     errors.append(error_msg)
 
 
-def common_error_handler(errors, substring, string, lineno, message, carry_over=None):
+def common_error_handler(
+    errors, substring,
+    string, lineno,
+    message, carry_over=None
+):
     substring += gather_invalid_char(string[len(substring):])
     string = strip_from_start(string, substring)
     if carry_over:
@@ -54,6 +73,7 @@ def common_error_handler(errors, substring, string, lineno, message, carry_over=
         report_error(substring, lineno, "Unmatched */", errors)
     else:
         report_error(substring, lineno, message, errors)
+
     return None, string, substring, lineno
 
 
@@ -80,7 +100,13 @@ def match_num(string, substring, lineno, errors):
             else:
                 # Error
                 substring += char
-                return common_error_handler(errors, substring, string, lineno, "Invalid number")
+                return common_error_handler(
+                    errors,
+                    substring,
+                    string,
+                    lineno,
+                    "Invalid number"
+                )
 
         string = strip_from_start(string, substring)
         return "NUM", string, substring, lineno
@@ -93,7 +119,11 @@ def match_symbol(string, substring, lineno, errors):
         n = string[1] if 1 < len(string) else None
         nn = string[2] if 2 < len(string) else None
         nnn = string[3] if 3 < len(string) else None
-        if substring != "=" and substring in SYMBOL and starts_valid_token(n, nn):
+        if (
+            substring != "="
+            and substring in SYMBOL
+            and starts_valid_token(n, nn)
+        ):
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
@@ -111,7 +141,13 @@ def match_symbol(string, substring, lineno, errors):
             if substring == "=" and n == "=":
                 substring += n
 
-            return common_error_handler(errors, substring, string, lineno, "Invalid symbol")
+            return common_error_handler(
+                errors,
+                substring,
+                string,
+                lineno,
+                "Invalid symbol"
+            )
 
     return None, None, None, lineno
 
@@ -149,7 +185,6 @@ def match_comment(string, substring, lineno, errors):
             string = strip_from_start(string, substring)
             return "COMMENT", string, substring, lineno
 
-
     return None, None, None, lineno
 
 
@@ -164,7 +199,14 @@ def match_id(string, substring, lineno, errors, carry_over=None):
             return "ID", string, substring, lineno
 
         else:
-            return common_error_handler(errors, substring, string, lineno, "Invalid input", carry_over)
+            return common_error_handler(
+                errors,
+                substring,
+                string,
+                lineno,
+                "Invalid input",
+                carry_over
+            )
 
     return None, None, None, lineno
 
@@ -181,10 +223,14 @@ def match_keyword(string, substring, lineno, errors):
         elif substring in keyword_starts:
             continue
 
-        elif (char.isalpha() or char.isdigit()) and substring not in keyword_starts:
+        elif (
+            (char.isalpha() or char.isdigit())
+            and substring not in keyword_starts
+        ):
             # It might be an id instead
             string = strip_from_start(string, substring[:-1])
-            res = match_id(string, substring[-1], lineno, errors, substring[:-1])
+            res = match_id(string, substring[-1],
+                           lineno, errors, substring[:-1])
             substring = substring[:-1] + res[2]
             return res[:2] + (substring, ) + res[3:]
 
@@ -194,7 +240,13 @@ def match_keyword(string, substring, lineno, errors):
             return "ID", string, substring[:-1], lineno
 
         else:
-            return common_error_handler(errors, substring, string, lineno, "Invalid input")
+            return common_error_handler(
+                errors,
+                substring,
+                string,
+                lineno,
+                "Invalid input"
+            )
 
     return None, None, None, lineno
 
@@ -210,7 +262,8 @@ def match_keyword_or_id(string, substring, lineno, errors):
 
 
 def do_matching(string, substring, lineno, match_function, errors):
-    # All matching function return (token_type, new_string, matched_string, new_lineno)
+    # All matching functions
+    # return (token_type, new_string, matched_string, new_lineno)
     res = match_function(string, substring, lineno, errors)
     token_type = res[0]
     new_string = res[1]
@@ -258,7 +311,7 @@ def match(string, lineno, errors):
 
 
 def save_token(token, substring, lineno, tokens):
-    if not lineno in tokens:
+    if lineno not in tokens:
         tokens[lineno] = []
     tokens[lineno].append((token, substring))
 
@@ -280,7 +333,8 @@ def get_next_token(data, lineno, tokens, symbol_table, errors):
 def write_tokens_to_file(tokens):
     with open("tokens.txt", "w") as f:
         for key in tokens:
-            tokens[key] = [t for t in tokens[key] if t[0] not in ["WHITESPACE", "COMMENT"]]
+            tokens[key] = [t for t in tokens[key]
+                           if t[0] not in ["WHITESPACE", "COMMENT"]]
             if len(tokens[key]) > 0:
                 f.write(f"{key}.")
                 for token in tokens[key]:
@@ -288,6 +342,7 @@ def write_tokens_to_file(tokens):
                 f.write(f"\n")
 
         f.close()
+
 
 def write_symbol_table_to_file(symbol_table):
     with open("symbol_table.txt", "w") as f:
@@ -310,7 +365,6 @@ def write_errors_to_file(errors):
 
 def debug_prints(tokens, symbol_table, errors):
     print("\nTokens:")
-    tokens_print = {}
     for key in tokens:
         if len(tokens[key]) > 0:
             print(tokens[key])
@@ -342,9 +396,11 @@ def main(argv):
                     "switch", "default", "case", "return"]
     errors = []
     while data:
-        data, lineno = get_next_token(data, lineno, tokens, symbol_table, errors)
+        data, lineno = get_next_token(
+            data, lineno, tokens, symbol_table, errors)
 
-    # debug_prints(tokens, symbol_table, errors) # TODO: delete this before turn in
+    # TODO: delete this before turn in
+    # debug_prints(tokens, symbol_table, errors)
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)
