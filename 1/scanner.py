@@ -196,12 +196,10 @@ def match_keyword_or_id(string, substring, lineno, errors):
     if substring.isalpha():
         for i, char in enumerate(string[1:]):
             n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
-            print("substring: ", substring)
             if char.isdigit() or char.isalpha():
                 substring += char
 
             elif starts_valid_token(char, n):
-                print("starts valid token")
                 string = strip_from_start(string, substring)
                 if substring in KEYWORD:
                     return "KEYWORD", string, substring, lineno
@@ -334,18 +332,18 @@ def write_errors_to_file(errors):
 
 
 def debug_prints(tokens, symbol_table, errors):
-    print("\nTokens:")
+    print("Tokens:")
     for key in tokens:
         if len(tokens[key]) > 0:
             print(tokens[key])
 
-    symbol_table_print = list(dict.fromkeys(symbol_table))
-    print("\nSymbol table:")
-    print(symbol_table_print)
+    print()
+    print("Symbol table:")
+    print(symbol_table)
 
-    errors_print = list(dict.fromkeys(errors))
-    print("\nErrors:")
-    print(errors_print)
+    print()
+    print("Errors:")
+    print(errors)
 
 
 def main(argv):
