@@ -332,18 +332,18 @@ def write_errors_to_file(errors):
 
 
 def debug_prints(tokens, symbol_table, errors):
-    print("\nTokens:")
+    print("Tokens:")
     for key in tokens:
         if len(tokens[key]) > 0:
             print(tokens[key])
 
-    symbol_table_print = list(dict.fromkeys(symbol_table))
-    print("\nSymbol table:")
-    print(symbol_table_print)
+    print()
+    print("Symbol table:")
+    print(symbol_table)
 
-    errors_print = list(dict.fromkeys(errors))
-    print("\nErrors:")
-    print(errors_print)
+    print()
+    print("Errors:")
+    print(errors)
 
 
 def main(argv):
