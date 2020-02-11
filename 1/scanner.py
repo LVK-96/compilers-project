@@ -62,13 +62,10 @@ def report_error(discarded, lineno, reason, errors):
 def common_error_handler(
     errors, substring,
     string, lineno,
-    message, carry_over=None
+    message
 ):
     substring += gather_invalid_char(string[len(substring):])
     string = strip_from_start(string, substring)
-    if carry_over:
-        substring = carry_over + substring
-
     if substring[:2] == "*/":
         report_error(substring, lineno, "Unmatched */", errors)
     else:
@@ -188,75 +185,28 @@ def match_comment(string, substring, lineno, errors):
     return None, None, None, lineno
 
 
-def match_id(string, substring, lineno, errors, carry_over=None):
-    for i, char in enumerate(string[1:]):
-        n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
-        if char.isdigit() or char.isalpha():
-            substring += char
-
-        elif starts_valid_token(char, n):
-            string = strip_from_start(string, substring)
-            return "ID", string, substring, lineno
-
-        else:
-            return common_error_handler(
-                errors,
-                substring,
-                string,
-                lineno,
-                "Invalid input",
-                carry_over
-            )
-
-    return None, None, None, lineno
-
-
-def match_keyword(string, substring, lineno, errors):
-    for i, char in enumerate(string[1:]):
-        n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
-        substring += char
-        keyword_starts = [s[:len(substring)] for s in KEYWORD]
-        if substring in KEYWORD:
-            string = strip_from_start(string, substring)
-            return "KEYWORD", string, substring, lineno
-
-        elif substring in keyword_starts:
-            continue
-
-        elif (
-            (char.isalpha() or char.isdigit())
-            and substring not in keyword_starts
-        ):
-            # It might be an id instead
-            string = strip_from_start(string, substring[:-1])
-            res = match_id(string, substring[-1],
-                           lineno, errors, substring[:-1])
-            substring = substring[:-1] + res[2]
-            return res[:2] + (substring, ) + res[3:]
-
-        elif starts_valid_token(char, n):
-            # It is an id
-            string = strip_from_start(string, substring[:-1])
-            return "ID", string, substring[:-1], lineno
-
-        else:
-            return common_error_handler(
-                errors,
-                substring,
-                string,
-                lineno,
-                "Invalid input"
-            )
-
-    return None, None, None, lineno
-
-
 def match_keyword_or_id(string, substring, lineno, errors):
-    if substring in [s[0] for s in KEYWORD]:
-        return match_keyword(string, substring, lineno, errors)
+    if substring.isalpha():
+        for i, char in enumerate(string[1:]):
+            n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
+            if char.isdigit() or char.isalpha():
+                substring += char
 
-    elif substring.isalpha():
-        return match_id(string, substring, lineno, errors)
+            elif starts_valid_token(char, n):
+                string = strip_from_start(string, substring)
+                if substring in KEYWORD:
+                    return "KEYWORD", string, substring, lineno
+
+                return "ID", string, substring, lineno
+
+            else:
+                return common_error_handler(
+                    errors,
+                    substring,
+                    string,
+                    lineno,
+                    "Invalid input"
+                )
 
     return None, None, None, lineno
 
@@ -313,6 +263,7 @@ def match(string, lineno, errors):
 def save_token(token, substring, lineno, tokens):
     if lineno not in tokens:
         tokens[lineno] = []
+
     tokens[lineno].append((token, substring))
 
 
@@ -327,6 +278,7 @@ def get_next_token(data, lineno, tokens, symbol_table, errors):
     data, token, substring, new_lineno = match(data, lineno, errors)
     if token:
         handle_match(token, substring, lineno, tokens, symbol_table)
+
     return data, new_lineno
 
 
