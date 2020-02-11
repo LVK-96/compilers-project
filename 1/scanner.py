@@ -66,7 +66,7 @@ def common_error_handler(
 ):
     substring += gather_invalid_char(string[len(substring):])
     string = strip_from_start(string, substring)
-    if substring[:2] == "*/":
+    if substring == "*/":
         report_error(substring, lineno, "Unmatched */", errors)
     else:
         report_error(substring, lineno, message, errors)
@@ -137,6 +137,12 @@ def match_symbol(string, substring, lineno, errors):
             # Error
             if substring == "=" and n == "=":
                 substring += n
+
+            if substring == "*" and n == "/":
+                substring += n
+                string = strip_from_start(string, substring)
+                report_error(substring, lineno, "Unmatched */", errors)
+                return None, string, substring, lineno
 
             return common_error_handler(
                 errors,
@@ -220,11 +226,11 @@ def do_matching(string, substring, lineno, match_function, errors):
     matched_string = res[2]
     new_lineno = res[3]
     if token_type:
-        return True, new_string, token_type, matched_string, new_lineno
+        return True, token_type, new_string, matched_string, new_lineno
 
     elif (not token_type and matched_string):
-        # There was an error -> Report
-        return True, new_string, None, matched_string, new_lineno
+        # There was an error
+        return True, None, new_string, matched_string, new_lineno
 
     else:
         # Fall through to next matcher
@@ -254,10 +260,13 @@ def match(string, lineno, errors):
         return res[1:]
 
     # Error
-    substring += gather_invalid_char(string[1:])
-    new_string = strip_from_start(string, substring)
-    report_error(substring, lineno, "Invalid input", errors)
-    return new_string, None, substring, lineno
+    return common_error_handler(
+        errors,
+        substring,
+        string,
+        lineno,
+        "Invalid input"
+    )
 
 
 def save_token(token, substring, lineno, tokens):
@@ -275,7 +284,7 @@ def handle_match(token, substring, lineno, tokens, symbol_table):
 
 
 def get_next_token(data, lineno, tokens, symbol_table, errors):
-    data, token, substring, new_lineno = match(data, lineno, errors)
+    token, data, substring, new_lineno = match(data, lineno, errors)
     if token:
         handle_match(token, substring, lineno, tokens, symbol_table)
 

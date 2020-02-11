@@ -5,3 +5,4 @@ id followed by an invalid close comment i.e. 'aa*/' OK
 num followed by an invalid close comment i.e. '999*/' OK
 Empty file OK
 Invalid number i.e. '9a' OK
+Comment with quoted */ i.e. '/*****"*/"*/ OK
