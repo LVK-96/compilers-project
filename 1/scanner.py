@@ -196,12 +196,10 @@ def match_keyword_or_id(string, substring, lineno, errors):
     if substring.isalpha():
         for i, char in enumerate(string[1:]):
             n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
-            print("substring: ", substring)
             if char.isdigit() or char.isalpha():
                 substring += char
 
             elif starts_valid_token(char, n):
-                print("starts valid token")
                 string = strip_from_start(string, substring)
                 if substring in KEYWORD:
                     return "KEYWORD", string, substring, lineno
