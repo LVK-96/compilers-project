@@ -92,7 +92,7 @@ def match_num(string, substring, lineno, errors):
             if char.isdigit():
                 substring += char
 
-            elif starts_valid_token(char, n):
+            elif char.isspace() or char in SYMBOL or char == "/":
                 break
 
             else:
@@ -360,15 +360,14 @@ def main(argv):
 
     lineno = 1
     tokens = {}
-    symbol_table = ["if", "else", "void", "int", "while", "break", "continue",
-                    "switch", "default", "case", "return"]
+    symbol_table = KEYWORD.copy()
     errors = []
     while data:
         data, lineno = get_next_token(
             data, lineno, tokens, symbol_table, errors)
 
     # TODO: delete this before turn in
-    debug_prints(tokens, symbol_table, errors)
+    # debug_prints(tokens, symbol_table, errors)
 
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)

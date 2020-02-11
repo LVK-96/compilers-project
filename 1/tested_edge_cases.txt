@@ -11,3 +11,4 @@ file ending in ID i.e. /**/asd OK
 /a**/ and /**a/ OK
 /***/****/ OK
 //fdsafdsa//fdsafdsa OK
+Only whitespace OK
