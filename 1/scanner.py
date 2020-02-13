@@ -4,9 +4,6 @@ Jaakko Koskela 526050
 """
 
 
-import sys  # TODO: Remove this before turn in
-
-
 SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
           "+", "-", "*", "=", "<"]
 KEYWORD = ["if", "else", "void", "int", "while", "break",
@@ -34,7 +31,6 @@ def strip_from_start(string, substring):
 def gather_invalid_char(string):
     substring = ""
     for i, char in enumerate(string):
-        n = string[i + 1] if i + 1 < len(string) else None
         if starts_valid_token(char):
             break
 
@@ -329,28 +325,8 @@ def write_errors_to_file(errors):
         f.close()
 
 
-def debug_prints(tokens, symbol_table, errors):
-    print("Tokens:")
-    for key in tokens:
-        if len(tokens[key]) > 0:
-            print(tokens[key])
-
-    print()
-    print("Symbol table:")
-    print(symbol_table)
-
-    print()
-    print("Errors:")
-    print(errors)
-
-
-def main(argv):
+def main():
     filename = "input.txt"
-
-    # TODO: Remove this before turn in
-    if argv and argv[0]:
-        filename = argv[0]
-
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
@@ -364,14 +340,10 @@ def main(argv):
         data, lineno = get_next_token(
             data, lineno, tokens, symbol_table, errors)
 
-    # TODO: delete this before turn in
-    # debug_prints(tokens, symbol_table, errors)
-
     write_tokens_to_file(tokens)
     write_symbol_table_to_file(symbol_table)
     write_errors_to_file(errors)
 
 
 if __name__ == "__main__":
-    argv = sys.argv[1:]
-    main(argv)
+    main()

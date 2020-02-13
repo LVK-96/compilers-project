@@ -3,8 +3,10 @@ Comment on last line OK
 '==' followed by a invalid close comment i.e. '==*/' OK
 id followed by an invalid close comment i.e. 'aa*/' OK
 num followed by an invalid close comment i.e. '999*/' OK
+symbol followed by an invalid close comment !*/ OK
 Empty file OK
 Invalid number i.e. '9a' OK
+Invalid number i.e. '91123afdsafdsafds'
 Comment with quoted */ i.e. '/*****"*/"*/ OK
 Num followed by comment i.e. 1/**/ OK
 file ending in ID i.e. /**/asd OK
