@@ -13,22 +13,14 @@ KEYWORD = ["if", "else", "void", "int", "while", "break",
            "continue", "switch", "default", "case", "return"]
 
 
-def starts_valid_token(char, n):
-    if char and n:
+def starts_valid_token(char):
+    if char:
         return (
             char.isspace()
             or char.isdigit()
             or char.isalpha()
             or char in SYMBOL
-            or (char == "/" and (n == "*" or n == "/"))
-        )
-
-    elif char:
-        return (
-            char.isspace()
-            or char.isdigit()
-            or char.isalpha()
-            or char in SYMBOL
+            or char == "/"
         )
 
     else:
@@ -43,7 +35,7 @@ def gather_invalid_char(string):
     substring = ""
     for i, char in enumerate(string):
         n = string[i + 1] if i + 1 < len(string) else None
-        if starts_valid_token(char, n):
+        if starts_valid_token(char):
             break
 
         substring += char
@@ -115,20 +107,28 @@ def match_symbol(string, substring, lineno, errors):
     if substring in SYMBOL:
         n = string[1] if 1 < len(string) else None
         nn = string[2] if 2 < len(string) else None
-        nnn = string[3] if 3 < len(string) else None
         if (
             substring != "="
+            and substring != "*"
             and substring in SYMBOL
-            and starts_valid_token(n, nn)
+            and starts_valid_token(n)
         ):
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
-        elif (substring == "=" and n != "=" and starts_valid_token(n, nn)):
+        elif (
+            substring == "*"
+            and n != "/"
+            and starts_valid_token(n)
+        ):
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
 
-        elif substring == "=" and n == "=" and starts_valid_token(nn, nnn):
+        elif (substring == "=" and n != "=" and starts_valid_token(n)):
+            string = strip_from_start(string, substring)
+            return "SYMBOL", string, substring, lineno
+
+        elif substring == "=" and n == "=" and starts_valid_token(nn):
             substring += n
             string = strip_from_start(string, substring)
             return "SYMBOL", string, substring, lineno
@@ -194,11 +194,10 @@ def match_comment(string, substring, lineno, errors):
 def match_keyword_or_id(string, substring, lineno, errors):
     if substring.isalpha():
         for i, char in enumerate(string[1:]):
-            n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
             if char.isdigit() or char.isalpha():
                 substring += char
 
-            elif starts_valid_token(char, n):
+            elif starts_valid_token(char):
                 string = strip_from_start(string, substring)
                 if substring in KEYWORD:
                     return "KEYWORD", string, substring, lineno
