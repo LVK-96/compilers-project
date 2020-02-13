@@ -88,7 +88,6 @@ def match_whitespace(string, substring, lineno, errors):
 def match_num(string, substring, lineno, errors):
     if substring.isdigit():
         for i, char in enumerate(string[1:]):
-            n = string[1:][i + 1] if i + 1 < len(string[1:]) else None
             if char.isdigit():
                 substring += char
 
