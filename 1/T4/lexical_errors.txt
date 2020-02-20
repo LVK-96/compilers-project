@@ -1,3 +1,0 @@
-2.	(2x, invalid number)
-3.	(2a, invalid number)
-10.	(#, invalid input)
