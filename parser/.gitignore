@@ -1,0 +1,6 @@
+input.txt
+tokens.txt
+lexical_errors.txt
+symbol_table.txt
+parse_tree.txt
+syntax_errors.txt
