@@ -3,9 +3,6 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-import sys  # TODO: Remove this before turn in
-
-
 class Scanner:
     def __init__(self, filename):
         self.SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
