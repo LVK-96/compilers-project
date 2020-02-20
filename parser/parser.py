@@ -1,6 +1,7 @@
 import sys
 from scanner import Scanner
 
+
 def main(argv):
     filename = "input.txt"
     # TODO: Remove this before turn in

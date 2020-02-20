@@ -3,12 +3,13 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
+
 class Scanner:
     def __init__(self, filename):
         self.SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
-                  "+", "-", "*", "=", "<"]
+                       "+", "-", "*", "=", "<"]
         self.KEYWORD = ["if", "else", "void", "int", "while", "break",
-                   "continue", "switch", "default", "case", "return"]
+                        "continue", "switch", "default", "case", "return"]
         self.lineno = 1
         self.tokens = {}
         self.symbol_table = self.KEYWORD.copy()
@@ -17,7 +18,6 @@ class Scanner:
             self.data = f.read()
             self.data = self.data.rstrip("\n")
             f.close()
-
 
     def starts_valid_token(self, char):
         if char:
@@ -32,10 +32,8 @@ class Scanner:
         else:
             return True
 
-
     def strip_from_start(self, substring):
         self.data = self.data.replace(substring, "", 1)
-
 
     def gather_invalid_char(self, string):
         substring = ""
@@ -47,14 +45,12 @@ class Scanner:
 
         return substring
 
-
     def report_error(self, lineno, discarded, reason):
         error_msg = f"{lineno}. ({discarded}, {reason})"
         if "\n" in discarded:
             error_msg = f"{lineno}. ({discarded[:10]}..., {reason})"
 
         self.errors.append(error_msg)
-
 
     def common_error_handler(
         self,
@@ -70,7 +66,6 @@ class Scanner:
 
         return None, substring
 
-
     def match_whitespace(self, substring):
         if substring.isspace():
             if (substring == "\n"):
@@ -80,7 +75,6 @@ class Scanner:
             return "WHITESPACE", substring
 
         return None, None
-
 
     def match_num(self, substring):
         if substring.isdigit():
@@ -103,7 +97,6 @@ class Scanner:
             return "NUM", substring
 
         return None, None
-
 
     def match_symbol(self, substring):
         if substring in self.SYMBOL:
@@ -150,7 +143,6 @@ class Scanner:
 
         return None, None
 
-
     def match_comment(self, substring):
         if substring == "/":
             n = self.data[1] if 1 < len(self.data) else None
@@ -186,7 +178,6 @@ class Scanner:
 
         return None, None
 
-
     def match_keyword_or_id(self, substring):
         if substring.isalpha():
             for i, char in enumerate(self.data[1:]):
@@ -214,7 +205,6 @@ class Scanner:
 
         return None, None
 
-
     def do_matching(self, substring, match_function):
         res = match_function(substring)
         token_type = res[0]
@@ -229,7 +219,6 @@ class Scanner:
         else:
             # Fall through to next matcher
             return False, None, None
-
 
     def match(self):
         substring = self.data[0]
@@ -259,20 +248,17 @@ class Scanner:
             "Invalid input"
         )
 
-
     def save_token(self, token, substring):
         if self.lineno not in self.tokens:
             self.tokens[self.lineno] = []
 
         self.tokens[self.lineno].append((token, substring))
 
-
     def handle_match(self, token, substring):
         if token == "ID" and substring not in self.symbol_table:
             self.symbol_table.append(substring)
 
         self.save_token(token, substring)
-
 
     def get_next_token(self):
         if not self.data:
@@ -285,13 +271,11 @@ class Scanner:
 
         return self.get_next_token()
 
-
-
     def write_tokens_to_file(self):
         with open("tokens.txt", "w") as f:
             for key in self.tokens:
                 self.tokens[key] = [t for t in self.tokens[key]
-                               if t[0] not in ["WHITESPACE", "COMMENT"]]
+                                    if t[0] not in ["WHITESPACE", "COMMENT"]]
                 if len(self.tokens[key]) > 0:
                     f.write(f"{key}.")
                     for token in self.tokens[key]:
@@ -300,14 +284,12 @@ class Scanner:
 
             f.close()
 
-
     def write_symbol_table_to_file(self):
         with open("symbol_table.txt", "w") as f:
             for i, symbol in enumerate(self.symbol_table):
                 f.write(f"{i + 1}. {symbol}\n")
 
             f.close()
-
 
     def write_errors_to_file(self):
         with open("lexical_errors.txt", "w") as f:
