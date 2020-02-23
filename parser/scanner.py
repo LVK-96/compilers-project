@@ -5,19 +5,14 @@ Jaakko Koskela 526050
 
 
 class Scanner:
-    def __init__(self, filename):
-        self.SYMBOL = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
-                       "+", "-", "*", "=", "<"]
-        self.KEYWORD = ["if", "else", "void", "int", "while", "break",
-                        "continue", "switch", "default", "case", "return"]
+    def __init__(self, filename, symbols, keywords, data):
+        self.SYMBOL = symbols
+        self.KEYWORD = keywords
         self.lineno = 1
         self.tokens = {}
         self.symbol_table = self.KEYWORD.copy()
         self.errors = []
-        with open(filename) as f:
-            self.data = f.read()
-            self.data = self.data.rstrip("\n")
-            f.close()
+        self.data = data
 
     def starts_valid_token(self, char):
         if char:
@@ -265,7 +260,7 @@ class Scanner:
             return ("EOF", "$")
 
         token, substring = self.match()
-        if token:
+        if token and token != "COMMENT" and token != "WHITESPACE":
             self.handle_match(token, substring)
             return (token, substring)
 
