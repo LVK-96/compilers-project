@@ -146,7 +146,7 @@ class LL1_parser:
             row = self.non_terminals.index(head) if head in self.non_terminals else None
             production = ll1_table[row][column] if row != None else None
             if production:
-                self.stack.pop()
+                start = self.stack.pop()
                 print("production", production)
                 items = production.split(" ")
                 #add nodes to tree
