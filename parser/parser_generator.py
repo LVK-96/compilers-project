@@ -1,3 +1,5 @@
+import sys
+
 symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
            "+", "-", "*", "=", "<", "=="]
 keywords = ["if", "else", "void", "int", "while", "break",
@@ -70,6 +72,30 @@ def make_follows(follows, productions, firsts):
     return follows
 
 
+def make_table(firsts, follows, productions):
+    ll1_table = []
+    terminals_with_eof = terminals + ["$"]
+    for f in firsts:
+        line = [None] * len(terminals_with_eof)
+        for t in terminals_with_eof:
+            if t in firsts[f]:
+                correct_production = None
+                for p in productions[f]:
+                    elems = p.split(" ")
+                    if elems[0] == t:
+                        correct_production = p
+                        break
+                    elif elems[0] in firsts and t in firsts[elems[0]]:
+                        correct_production = p
+                        break
+
+                line[terminals_with_eof.index(t)] = correct_production
+
+        ll1_table.append(line)
+
+    return ll1_table
+
+
 def main():
     with open("grammar.txt") as f:
         data = f.read()
@@ -96,29 +122,13 @@ def main():
 
     firsts = make_firsts(productions, first_calculated, firsts)
     follows = make_follows(follows, productions, firsts)
+    ll1_table = make_table(firsts, follows, productions)
 
-    ll1_table = []
-    terminals_with_eof = terminals + ["$"]
-    for f in firsts:
-        line = [None] * len(terminals_with_eof)
-        for t in terminals_with_eof:
-            if t in firsts[f]:
-                correct_production = None
-                for p in productions[f]:
-                    elems = p.split(" ")
-                    if elems[0] == t:
-                        correct_production = p
-                        break
-                    elif elems[0] in firsts and t in firsts[elems[0]]:
-                        correct_production = p
-                        break
+    with open('table.txt', 'w') as f:
+        for line in ll1_table:
+            f.write("%s\n" % line)
 
-                line[terminals_with_eof.index(t)] = correct_production
-
-        ll1_table.append(line)
-
-    for line in ll1_table:
-        print(line)
+        f.close()
 
 if __name__ == "__main__":
     main()
