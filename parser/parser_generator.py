@@ -90,25 +90,36 @@ def main():
                         continue
 
                     orig_size = len(follows[elem])
-                    rest = elems[elems.index(elem)::]
+                    rest = elems[elems.index(elem) + 1::]
                     if len(rest) > 0:
-                        n = rest[0]
-                        if n in terminals:
-                            follows[elem].append(n)
-                        else:
-                            follows[elem] += firsts[n]
+                        if rest[0] not in terminals:
+                            if "EPSILON" not in firsts[rest[0]]:
+                                follows[elem] += firsts[rest[0]]
+                            else:
+                                follows[elem] += firsts[rest[0]]
+                                follows[elem].remove("EPSILON")
+                                follows[elem] += follows[rest[0]]
 
+                        else:
+                            follows[elem].append(rest[0])
                     else:
                         follows[elem] += follows[k]
 
+                    follows[elem] = list(set(follows[elem]))
                     if len(follows[elem]) > orig_size:
                         changed = True
 
         if not changed:
             break
 
+    print("First")
     for f in firsts:
         print(f, firsts[f])
+
+    print()
+    print("Follow")
+    for f in follows:
+        print(f, follows[f])
 
 if __name__ == "__main__":
     main()
