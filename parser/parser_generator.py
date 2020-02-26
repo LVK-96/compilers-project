@@ -20,7 +20,14 @@ def first_of(production, productions, first_calculated, firsts):
             firsts[production[0]].append(elems[0])
 
         else:
-            first_of_other = first_of((elems[0], productions[elems[0]]), productions, first_calculated, firsts)
+            first_of_other = []
+            i = 0
+            while i < len(elems):
+                first_of_other += first_of((elems[i], productions[elems[i]]), productions, first_calculated, firsts)
+                i += 1
+                if "EPSILON" not in first_of_other:
+                    break
+
             firsts[production[0]] += first_of_other
 
     firsts[production[0]] = list(set(firsts[production[0]]))
@@ -85,15 +92,58 @@ def make_table(firsts, follows, productions):
                     if elems[0] == t:
                         correct_production = p
                         break
-                    elif elems[0] in firsts and t in firsts[elems[0]]:
-                        correct_production = p
-                        break
+
+                    i = 0
+                    while i < len(elems):
+                        if elems[i] in firsts:
+                            if t in firsts[elems[i]]:
+                                correct_production = p
+                                break
+
+                            if "EPSILON" not in firsts[elems[i]]:
+                                break
+
+                        elif elems[i] in terminals_with_eof:
+                            break
+
+                        i += 1
+
 
                 line[terminals_with_eof.index(t)] = correct_production
+
+        if "EPSILON" in firsts[f]:
+            for t in terminals_with_eof:
+                if t in follows[f]:
+                    correct_production = None
+                    for p in productions[f]:
+                        elems = p.split(" ")
+                        if elems[0] == "EPSILON":
+                            correct_production = p
+                            break
+                        elif elems[0] in firsts and "EPSILON" in firsts[elems[0]]:
+                            correct_production = p
+                            break
+
+                    line[terminals_with_eof.index(t)] = correct_production
 
         ll1_table.append(line)
 
     return ll1_table
+
+
+def debug_print(firsts, follows, table):
+    print("Firsts")
+    for f in firsts:
+        print(f, firsts[f])
+
+    print()
+    print("Follows")
+    for f in follows:
+        print(f, follows[f])
+
+    print()
+    for line in table:
+        print(line)
 
 
 def main():
@@ -124,9 +174,11 @@ def main():
     follows = make_follows(follows, productions, firsts)
     ll1_table = make_table(firsts, follows, productions)
 
+    debug_print(firsts, follows, ll1_table)
+
     with open('table.txt', 'w') as f:
         for line in ll1_table:
-            f.write("%s\n" % line)
+            f.write("%s,\n" % line)
 
         f.close()
 
