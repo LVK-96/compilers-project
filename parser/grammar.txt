@@ -2,7 +2,7 @@ Program -> Declaration-list
 Declaration-list -> Declaration Declaration-list | EPSILON
 Declaration -> Declaration-initial Declaration-prime
 Declaration-initial -> Type-specifier ID
-Declaration-prime -> Fun-declaration-prime| Var-declaration-prime
+Declaration-prime -> Fun-declaration-prime | Var-declaration-prime
 Var-declaration-prime -> ; | [ NUM ] ;
 Fun-declaration-prime -> ( Params ) Compound-stmt
 Type-specifier -> int | void
@@ -18,7 +18,7 @@ Expression-stmt -> Expression ; | continue ; | break ; | ;
 Selection-stmt -> if ( Expression ) Statement else Statement
 Iteration-stmt -> while ( Expression ) Statement
 Return-stmt -> return Return-stmt-prime
-Return-stmt-prime-> ; | Expression ;
+Return-stmt-prime -> ; | Expression ;
 Switch-stmt -> switch ( Expression ) { Case-stmts Default-stmt }
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
@@ -40,10 +40,10 @@ Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
 Factor -> ( Expression ) | ID Var-call-prime | NUM
-Var-call-prime -> ( Args )| Var-prime
+Var-call-prime -> ( Args ) | Var-prime
 Var-prime -> [ Expression ] | EPSILON
-Factor-prime -> ( Args )| EPSILON
+Factor-prime -> ( Args ) | EPSILON
 Factor-zegond -> ( Expression ) | NUM
 Args -> Arg-list | EPSILON
 Arg-list -> Expression Arg-list-prime
-Arg-list-prime-> , Expression Arg-list-prime | EPSILON
+Arg-list-prime -> , Expression Arg-list-prime | EPSILON
