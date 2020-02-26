@@ -1,7 +1,6 @@
 import sys
 from collections import deque
 from scanner import Scanner
-# from parser_generator import parser_generator
 
 symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
                "+", "-", "*", "=", "<", "=="]
@@ -139,8 +138,8 @@ class LL1_parser:
 
         else:
             column = self.terminals.index(self.input_ptr[to_compare])
-            row = self.non_terminals.index(head)
-            production = ll1_table[row][column]
+            row = self.non_terminals.index(head) if head in self.non_terminals else None
+            production = ll1_table[row][column] if row != None else None
             if production:
                 self.stack.pop()
                 print("production", production)
