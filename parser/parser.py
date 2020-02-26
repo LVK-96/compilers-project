@@ -1,6 +1,7 @@
 import sys
 from collections import deque
 from scanner import Scanner
+from anytree import Node, RenderTree
 
 symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
                "+", "-", "*", "=", "<"]
@@ -214,6 +215,8 @@ class LL1_parser:
         self.scanner = scanner
         self.data = data
         self.input_ptr = self.scanner.get_next_token()
+        self.tree = Node("Program")
+        self.current_node = self.tree
 
     def step(self):
         head = self.stack[-1]
@@ -225,6 +228,8 @@ class LL1_parser:
         print("stack", self.stack)
         if self.input_ptr[to_compare] == head:
             popped = self.stack.pop()
+            if(popped != '$'):
+                self.add_nodes(popped, [], self.input_ptr)
             self.input_ptr = self.scanner.get_next_token()
             print(f"pop {head}")
 
@@ -233,18 +238,64 @@ class LL1_parser:
             row = self.non_terminals.index(head)
             i = self.table[row][column] - 1
             if i < len(self.productions):
-                self.stack.pop()
+                start = self.stack.pop() #replace lhs of a production with the rhs
                 production = self.productions[i]
                 print("production", production)
                 items = production[1].split(" ")
+
+                self.add_nodes(start, items, self.input_ptr)
+
                 for item in items[::-1]:
                     if (item != "EPSILON"):
                         self.stack.append(item)
             else:
                 # Error
+                sys.exit(1)
                 pass
 
         print()
+    
+    #start is the lhs o production and items make up the rhs
+    def add_nodes(self, start, items, input_ptr):
+        print("start: ", start)
+        #find the start point
+        while(self.current_node.name != start):
+            #move up
+            self.current_node = self.current_node.parent
+            #check children for start
+            for child in self.current_node.children:
+                if child.name == start:
+                    #start found move there
+                    self.current_node = child
+                    break
+            #when to break
+
+        left_node = None
+
+        #add in reverse order and continue to last 
+        for item in items[::-1]:
+            if (item != "EPSILON"):
+                #add nodes
+                left_node = Node(item, parent=self.current_node)
+
+
+        #add terminals from input - there should be no items in items - could be added before calling this function 
+        if(self.current_node.name == "ID" or self.current_node.name == "NUM"):
+            #add variable ID or NUM to tree from input
+            print("adding a variable")
+            Node(input_ptr[1], parent=self.current_node)
+
+        #move to leftmost node - probably not needed anymore
+        if(left_node):
+            self.current_node = left_node
+
+
+
+
+    def write_tree_to_file(self):
+        for pre, _, node in RenderTree(self.tree):
+            print("%s%s" % (pre, node.name))
+
 
 
 def main(argv):
@@ -271,7 +322,7 @@ def main(argv):
         parser.step()
         if (len(parser.stack) < 1):
             break
-
+    parser.write_tree_to_file()
     scanner.write_tokens_to_file()
     scanner.write_symbol_table_to_file()
     scanner.write_errors_to_file()
