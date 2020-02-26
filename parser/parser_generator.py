@@ -26,59 +26,14 @@ def first_of(production, productions, first_calculated, firsts):
     return firsts[production[0]]
 
 
-def follow_of(non_terminal, productions, firsts, follow_calculated, follows):
-    if follow_calculated[non_terminal]:
-        return follows[non_terminal]
-
-    for k, p in productions.items():
-        for sub in p:
-            elems = sub.split(" ")
-            if non_terminal in elems:
-                i = elems.index(non_terminal)
-                if i < len(elems) - 1:
-                    n = elems[i + 1]
-                    if n in terminals:
-                        follows[non_terminal].append(n)
-                    else:
-                        follows[non_terminal] += firsts[n]
-                else:
-                    if k != p:
-                        follows[non_terminal] += follow_of(k, productions, firsts, follow_calculated, follows)
-
-    follow_calculated[non_terminal] = True
-    follows[non_terminal] = list(set(follows[non_terminal]))
-    return follows[non_terminal]
-
-
-def main():
-    with open("grammar.txt") as f:
-        data = f.read()
-        data = data.rstrip()
-        f.close
-
-    data = data.split("\n")
-    productions = {}
-    first_calculated = {}
-    firsts = {}
-    follow_calculated = {}
-    follows = {}
-    for p in data:
-        lhs_rhs = p.split(" -> ")
-        lhs = lhs_rhs[0]
-        first_calculated[lhs] = False
-        firsts[lhs] = []
-        productions[lhs] = []
-        follow_calculated[lhs] = False
-        follows[lhs] = []
-        rhs = lhs_rhs[1]
-        rhs = rhs.split(" | ")
-        for r in rhs:
-            productions[lhs].append(r)
-
+def make_firsts(productions, first_calculated, firsts):
     for p in productions:
         first_of((p, productions[p]), productions, first_calculated, firsts)
 
+    return firsts
 
+
+def make_follows(follows, productions, firsts):
     follows["Program"].append("$")
     while True:
         changed = False
@@ -112,14 +67,58 @@ def main():
         if not changed:
             break
 
-    print("First")
-    for f in firsts:
-        print(f, firsts[f])
+    return follows
 
-    print()
-    print("Follow")
-    for f in follows:
-        print(f, follows[f])
+
+def main():
+    with open("grammar.txt") as f:
+        data = f.read()
+        data = data.rstrip()
+        f.close
+
+    data = data.split("\n")
+    productions = {}
+    first_calculated = {}
+    firsts = {}
+    follow_calculated = {}
+    follows = {}
+    for p in data:
+        lhs_rhs = p.split(" -> ")
+        lhs = lhs_rhs[0]
+        first_calculated[lhs] = False
+        firsts[lhs] = []
+        productions[lhs] = []
+        follows[lhs] = []
+        rhs = lhs_rhs[1]
+        rhs = rhs.split(" | ")
+        for r in rhs:
+            productions[lhs].append(r)
+
+    firsts = make_firsts(productions, first_calculated, firsts)
+    follows = make_follows(follows, productions, firsts)
+
+    ll1_table = []
+    terminals_with_eof = terminals + ["$"]
+    for f in firsts:
+        line = [None] * len(terminals_with_eof)
+        for t in terminals_with_eof:
+            if t in firsts[f]:
+                correct_production = None
+                for p in productions[f]:
+                    elems = p.split(" ")
+                    if elems[0] == t:
+                        correct_production = p
+                        break
+                    elif elems[0] in firsts and t in firsts[elems[0]]:
+                        correct_production = p
+                        break
+
+                line[terminals_with_eof.index(t)] = correct_production
+
+        ll1_table.append(line)
+
+    for line in ll1_table:
+        print(line)
 
 if __name__ == "__main__":
     main()
