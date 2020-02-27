@@ -159,7 +159,7 @@ class LL1_parser:
                 sys.exit(1)
 
         print()
-    
+
     #start is the lhs o production and items make up the rhs
     def add_nodes(self, start, items, input_ptr):
         print("start: ", start)
@@ -177,14 +177,14 @@ class LL1_parser:
 
         left_node = None
 
-        #add in reverse order and continue to last 
+        #add in reverse order and continue to last
         for item in items[::-1]:
             if (item != "EPSILON"):
                 #add nodes
                 left_node = Node(item, parent=self.current_node)
 
 
-        #add terminals from input - there should be no items in items - could be added before calling this function 
+        #add terminals from input - there should be no items in items - could be added before calling this function
         if(self.current_node.name == "ID" or self.current_node.name == "NUM"):
             #add variable ID or NUM to tree from input
             print("adding a variable")
@@ -194,13 +194,10 @@ class LL1_parser:
         if(left_node):
             self.current_node = left_node
 
-
-
-
     def write_tree_to_file(self):
-        for pre, _, node in RenderTree(self.tree):
-            print("%s%s" % (pre, node.name))
-
+        with open("parse_tree.txt", "w") as f:
+            for pre, _, node in RenderTree(self.tree):
+                print("%s%s" % (pre, node.name), file=f)
 
 
 def main(argv):
