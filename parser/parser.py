@@ -4,9 +4,9 @@ from scanner import Scanner
 from anytree import Node, RenderTree
 
 symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
-               "+", "-", "*", "=", "<", "=="]
+           "+", "-", "*", "=", "<", "=="]
 keywords = ["if", "else", "void", "int", "while", "break",
-                "continue", "switch", "default", "case", "return"]
+            "continue", "switch", "default", "case", "return"]
 
 terminals = ["ID", "NUM"] + symbols + keywords + ["$"]
 
@@ -114,6 +114,7 @@ ll1_table = [
     [None, None, None, None, None, ', Expression Arg-list-prime', None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
 ]
 
+
 class LL1_parser:
     def __init__(self, table, terminals, non_terminals, data, scanner):
         self.table = table
@@ -143,13 +144,14 @@ class LL1_parser:
 
         else:
             column = self.terminals.index(self.input_ptr[to_compare])
-            row = self.non_terminals.index(head) if head in self.non_terminals else None
-            production = ll1_table[row][column] if row != None else None
+            row = self.non_terminals.index(
+                head) if head in self.non_terminals else None
+            production = ll1_table[row][column] if row is not None else None
             if production:
                 start = self.stack.pop()
                 print("production", production)
                 items = production.split(" ")
-                #add nodes to tree
+                # add nodes to tree
                 self.add_nodes(start, items, self.input_ptr)
                 for item in items[::-1]:
                     if (item != "EPSILON"):
@@ -160,37 +162,37 @@ class LL1_parser:
 
         print()
 
-    #start is the lhs o production and items make up the rhs
+    # start is the lhs o production and items make up the rhs
     def add_nodes(self, start, items, input_ptr):
         print("start: ", start)
-        #find the start point
+        # find the start point
         while(self.current_node.name != start):
-            #move up
+            # move up
             self.current_node = self.current_node.parent
-            #check children for start
+            # check children for start
             for child in self.current_node.children:
                 if child.name == start:
-                    #start found move there
+                    # start found move there
                     self.current_node = child
                     break
-            #when to break
+            # when to break
 
         left_node = None
 
-        #add in reverse order and continue to last
+        # add in reverse order and continue to last
         for item in items[::-1]:
             if (item != "EPSILON"):
-                #add nodes
+                # add nodes
                 left_node = Node(item, parent=self.current_node)
 
-
-        #add terminals from input - there should be no items in items - could be added before calling this function
+        # add terminals from input - there should be no items in items - could
+        # be added before calling this function
         if(self.current_node.name == "ID" or self.current_node.name == "NUM"):
-            #add variable ID or NUM to tree from input
+            # add variable ID or NUM to tree from input
             print("adding a variable")
             Node(input_ptr[1], parent=self.current_node)
 
-        #move to leftmost node - probably not needed anymore
+        # move to leftmost node - probably not needed anymore
         if(left_node):
             self.current_node = left_node
 
