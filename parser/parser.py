@@ -133,14 +133,11 @@ class LL1_parser:
         if self.input_ptr[0] == "NUM" or self.input_ptr[0] == "ID":
             to_compare = 0
 
-        print("input ptr", self.input_ptr)
-        print("stack", self.stack)
         if self.input_ptr[to_compare] == head:
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
             self.input_ptr = self.scanner.get_next_token()
-            print(f"pop {head}")
 
         else:
             column = self.terminals.index(self.input_ptr[to_compare])
@@ -149,56 +146,50 @@ class LL1_parser:
             production = ll1_table[row][column] if row is not None else None
             if production:
                 start = self.stack.pop()
-                print("production", production)
                 items = production.split(" ")
-                # add nodes to tree
-                self.add_nodes(start, items, self.input_ptr)
                 for item in items[::-1]:
                     if (item != "EPSILON"):
                         self.stack.append(item)
+                # add nodes to tree
+                self.add_nodes(start, items, self.input_ptr)
             else:
                 # Error
                 sys.exit(1)
 
-        print()
-
     # start is the lhs o production and items make up the rhs
     def add_nodes(self, start, items, input_ptr):
-        print("start: ", start)
         # find the start point
         while(self.current_node.name != start):
             # move up
             self.current_node = self.current_node.parent
             # check children for start
             for child in self.current_node.children:
-                if child.name == start:
+                if child.name == start and not child.children:
                     # start found move there
                     self.current_node = child
                     break
-            # when to break
 
         left_node = None
 
-        # add in reverse order and continue to last
-        for item in items[::-1]:
-            if (item != "EPSILON"):
-                # add nodes
-                left_node = Node(item, parent=self.current_node)
+        for item in items:
+            left_node = Node(item, parent=self.current_node)
 
-        # add terminals from input - there should be no items in items - could
-        # be added before calling this function
-        if(self.current_node.name == "ID" or self.current_node.name == "NUM"):
-            # add variable ID or NUM to tree from input
-            print("adding a variable")
-            Node(input_ptr[1], parent=self.current_node)
+        if self.current_node.name in ["ID", "NUM"]:
+            self.current_node.name = f"({input_ptr[0]}, {input_ptr[1]})"
 
-        # move to leftmost node - probably not needed anymore
+        if self.current_node.name in symbols:
+            self.current_node.name = f"(SYMBOL, {self.current_node.name})"
+
+        if self.current_node.name in keywords:
+            self.current_node.name = f"(KEYWORD, {self.current_node.name})"
+
+        # move to leftmost node
         if(left_node):
             self.current_node = left_node
 
     def write_tree_to_file(self):
         with open("parse_tree.txt", "w") as f:
-            for pre, _, node in RenderTree(self.tree):
+            for pre, _, node in RenderTree(self.tree.root):
                 print("%s%s" % (pre, node.name), file=f)
 
 
