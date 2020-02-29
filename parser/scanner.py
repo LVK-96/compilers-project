@@ -257,12 +257,12 @@ class Scanner:
 
     def get_next_token(self):
         if not self.data:
-            return ("EOF", "$")
+            return ("EOF", "$", self.lineno)
 
         token, substring = self.match()
         if token and token != "COMMENT" and token != "WHITESPACE":
             self.handle_match(token, substring)
-            return (token, substring)
+            return (token, substring, self.lineno)
 
         return self.get_next_token()
 

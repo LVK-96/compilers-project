@@ -1,4 +1,5 @@
 import sys
+import json
 
 symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
            "+", "-", "*", "=", "<", "=="]
@@ -108,7 +109,6 @@ def make_table(firsts, follows, productions):
 
                         i += 1
 
-
                 line[terminals_with_eof.index(t)] = correct_production
 
         if "EPSILON" in firsts[f]:
@@ -125,6 +125,11 @@ def make_table(firsts, follows, productions):
                             break
 
                     line[terminals_with_eof.index(t)] = correct_production
+
+        for t in terminals_with_eof:
+            if t in follows[f] and not line[terminals_with_eof.index(t)]:
+                correct_production = "SYNCH"
+                line[terminals_with_eof.index(t)] = correct_production
 
         ll1_table.append(line)
 
@@ -156,7 +161,6 @@ def main():
     productions = {}
     first_calculated = {}
     firsts = {}
-    follow_calculated = {}
     follows = {}
     for p in data:
         lhs_rhs = p.split(" -> ")
@@ -181,6 +185,17 @@ def main():
             f.write("%s,\n" % line)
 
         f.close()
+
+    with open('firsts.json', 'w') as f:
+        json_string = json.dumps(firsts)
+        f.write(json_string)
+        f.close()
+
+    with open('follows.json', 'w') as f:
+        json_string = json.dumps(follows)
+        f.write(json_string)
+        f.close()
+
 
 if __name__ == "__main__":
     main()
