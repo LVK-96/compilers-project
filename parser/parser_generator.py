@@ -24,8 +24,11 @@ def first_of(production, productions, first_calculated, firsts):
             first_of_other = []
             i = 0
             while i < len(elems):
-                first_of_other += first_of(
-                    (elems[i], productions[elems[i]]), productions, first_calculated, firsts)
+                first_of_other += first_of((elems[i],
+                                            productions[elems[i]]),
+                                           productions,
+                                           first_calculated,
+                                           firsts)
                 i += 1
                 if "EPSILON" not in first_of_other:
                     break

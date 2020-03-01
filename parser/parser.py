@@ -375,7 +375,8 @@ class LL1_parser:
                 # Synch
                 self.remove_node(popped)
                 self.report_error(
-                    orig_lineno, f'missing "{self.find_simplest_construct(popped)}"')
+                    orig_lineno,
+                    f'missing "{self.find_simplest_construct(popped)}"')
             else:
                 # Mismatched terminal at head of stack and input
                 if popped != "$":
