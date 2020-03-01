@@ -388,12 +388,8 @@ class LL1_parser:
         if self.input_ptr[0] == "NUM" or self.input_ptr[0] == "ID":
             to_compare = 0
 
-        # print("stack", self.stack)
-        # print("input ptr", self.input_ptr)
-
         if self.input_ptr[to_compare] == head:
             popped = self.stack.pop()
-            # print("pop", popped)
 
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
@@ -407,7 +403,6 @@ class LL1_parser:
                 head) if head in self.non_terminals else None
             production = ll1_table[row][column] if row is not None else None
             if production and production != "SYNCH":
-                # print("production", production)
                 start = self.stack.pop()
                 items = production.split(" ")
                 for item in items[::-1]:
@@ -416,10 +411,7 @@ class LL1_parser:
                 # add nodes to tree
                 self.add_nodes(start, items, self.input_ptr)
             else:
-                # print("error", production)
                 self.handle_error(production, to_compare)
-
-        # print()
 
     # start is the lhs o production and items make up the rhs
     def add_nodes(self, start, items, input_ptr):
