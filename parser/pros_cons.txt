@@ -1,0 +1,8 @@
+Pros:
+    + We wrote a script to automatically test that our parser passes the given test cases
+    + We wrote our own parse table generator since the suggested tool was broken
+    + We refactored our scanner to improve its readability
+Cons:
+    - Our parser has has almost 300 lines of hard coded lists and tables in the start.
+      It would be better to have them in separate files, but since we are supposed to
+      turn in only the README, scanner.py and parser.py they need to be included that way.
