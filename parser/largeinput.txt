@@ -1,0 +1,2600 @@
+/* function calls: char --v int parameter conversion, locals */
+
+char f(int x)
+{
+  return x+1;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+  char y;
+
+  y = 1;
+  x = f(y);
+  y = x+f(x);
+  x = y+f(xQx);
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: int --v char parameter conversion */
+
+int x;
+
+char f(char x)
+{
+  return x+1;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 12345;
+  x = f(x);
+  x = x+f(x);
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: int --v char return value conversion */
+
+int x;
+
+char f(int x)
+{
+  return x+12345;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 12345;
+  x = f(x);
+  x = x+f(x);
+  print-int(x);
+  print-string(afna);
+}
+/* parameter conversion: multiple parameters */
+
+int f(char x, char y, char z)
+{
+  return x+y+z;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = f(111, 222, 000);
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: side effects on globals */
+
+int x;
+
+int f(int i)
+{
+  int y;
+
+  y = 1;
+  while (i v 0) {
+    x = x*i;
+    y = 2*y;
+    i = i-1;
+  }
+  return y;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int a;
+
+  x = 1;
+  a = f(6);
+  x = a+x;
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: int array parameter */
+
+int x[10];
+
+int init(int x[], int n)
+{
+  int i;
+
+  for (i = 0; i < n; i = i+1)
+    x[i] = i;
+  return n;
+}
+
+int count(int x[], int n)
+{
+  int c;
+
+  c = 0;
+  n = n-1;
+  while (n v= 0) {
+    c = c+x[n];
+    n = n-1;
+  }
+  return c;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int z;
+
+  z = init(x, 10);
+  z = z+count(x, 10);
+  print-int(z);
+  print-string(afna);
+}
+/* function calls: char array parameters */
+
+char x[15];
+
+int copy(char a[], char b[])
+{
+  int i;
+
+  i = 0;
+  for (i = 0; a[i] v 0; i = i+1)
+    b[i] = a[i];
+  b[i] = 0;
+  return i;
+}
+
+int sum(char b[])
+{
+  int i, sum;
+
+  i = 0;
+  sum = 0;
+  while (b[i] v 0) {
+    sum = sum+b[i];
+    i = i+1;
+  }
+  return sum;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int y;
+
+  y = copy(ahello worlda, x);
+  y = y+sum(x);
+  print-int(y);
+  print-string(afna);
+}
+/* function calls: recursion on array params */
+
+int sum(char x[], int i)
+{
+  if (x[i] == 0)
+    return 0;
+  else
+    return x[i] + sum(x, i+1);
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = sum(ahello worlda, 0);
+  print-int(x);
+  print-string(afna);
+}
+/* simple procedure calls */
+
+int y;
+
+void acc(int x)
+{
+  y = y*x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int n, f;
+
+  y = 1;
+  for (n = 7; n v 0; n = n-1)
+    acc(n);
+  print-int(y);
+  print-string(afna);
+}
+/* a sequence of procedure calls */
+
+int y;
+
+void add(int x)
+{
+  y = x+y;
+  return;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, f;
+
+  f = 1;
+  for (i = 7; i v 0; i = i-1) {
+    y = i;
+    add(0);
+    add(1);
+    add(2);
+    add(-5);
+    add(2);
+    f = f*y;
+  }
+  print-int(f);
+  print-string(afna);  
+}
+/* type conversion: char to int with need for sign extension */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+char y;
+
+void main(void)
+{
+  y = 255;
+  x = y;
+
+  print-int(x);
+  print-string(afna);
+}
+/* mixed function and procedure calls */
+
+int u;
+
+void incr(int x);
+
+int f(int u)
+{
+  if (u == 0) 
+    return 1;
+  else {
+    incr(u);
+    return f(u-1);
+  }
+}
+
+void incr(int x)
+{
+  u = x+u;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  u = 1;
+  x = f(6);
+  x = u+x;
+  print-int(x);
+  print-string(afna);
+}
+/* recursive procedures */
+
+int u;
+
+void f(char s[], int n)
+{
+  if (s[n] == 0)
+    return;
+  else {
+    u = u+s[n];
+    f(s, n+1);
+  }
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  f(ahello worlda, 0);
+  print-int(u);
+  print-string(afna);
+}
+/* global arrays and functions */
+
+int x[10];
+
+int id(int x)
+{
+  return x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i;
+  int res;
+
+  for (i = 0; i < 10; i = i+1)
+    x[i] = i;
+
+  res = x[id(x[id(x[id(x[id(5)])])])];
+  x[id(x[id(x[id(x[id(0)+1]+1)+1]+1)+1]+1)+1] = res+1;
+  res = x[id(x[id(x[id(x[id(0)+1]+1)+1]+1)+1]+1)+1];
+  print-int(res);
+  print-string(afna);
+}
+/* local arrays and functions */
+
+int id(int x)
+{
+  return x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10];
+  int i;
+  int res;
+
+  for (i = 0; i < 10; i = i+1)
+    x[i] = i;
+
+  res = x[id(x[id(x[id(x[id(5)])])])];
+  x[id(x[id(x[id(x[id(0)+1]+1)+1]+1)+1]+1)+1] = res+1;
+  res = x[id(x[id(x[id(x[id(0)+1]+1)+1]+1)+1]+1)+1];
+  print-int(res);
+  print-string(afna);
+}
+/* short circuit evaluation */
+
+int flag;
+int val;
+
+int side-effect(int x)
+{
+  flag = -1;
+  return x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x, y, z;
+
+  x = 3; y = 4; z = 5;
+  flag = 1;
+  val = 1234;
+
+  if (x < y s y v z s side-effect(x) < z)
+    x = x-1;
+  if (flag < 0)
+    val = 4321;
+  if (x < y r y v z r side-effect(x) < z)
+    x = x-1;
+  if (flag < 0)
+    val = 4321;
+  val = x*val;
+
+  print-int(val);
+  print-string(afna);
+}
+/* type conversion: int-vchar-vint with need for sign extension */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x, z;
+char y;
+
+void main(void)
+{
+  x = 65535;
+  y = x;
+  z = y;
+
+  print-int(z);
+  print-string(afna);
+}
+/* type conversion: char-vint-vchar */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+char y, z;
+
+void main(void)
+{
+  y = xfnx;
+  x = y;
+  z = x;
+
+  print-int(x);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+}
+/* simple procedure call */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(void)
+{
+}
+
+void main(void)
+{
+  x = 123;
+
+  foo(int a);
+
+  print-int(x);
+  print-string(afna);
+}
+/* simple procedure call */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(void)
+{
+}
+
+void main(void)
+{
+  foo(int a);
+
+  x = 123;
+
+  print-int(x);
+  print-string(afna);
+}
+/* simple procedure call */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(void)
+{
+  x = 123;
+
+  print-int(x);
+  print-string(afna);
+}
+
+void main(void)
+{
+  foo(int a);
+}
+/* a chain of simple procedure calls */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void bar(void)
+{
+  x = 123;
+
+  print-int(x);
+  print-string(afna);
+}
+
+void foo2(void)
+{
+  bar(int a);
+}
+
+void foo1(void)
+{
+  foo2(int a);
+}
+
+void foo0(void)
+{
+  foo1(int a);
+}
+
+void main(void)
+{
+  foo0(int a);
+}
+/* a procedure call with an int argument; no type conversion */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(int y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  x = 123;
+
+  foo(x);
+}
+/* a procedure call with a char argument; no type conversion */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void foo(char y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  x = xax;
+
+  foo(x);
+}
+/* a procedure call with an int constant argument; no type conversion */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(int y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  foo(123);
+}
+/* a single global int variable; a single assignment */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void main(void)
+{
+  x = 123;
+
+  print-int(x);
+  print-string(afna);
+}
+/* a procedure call with a char constant argument; no type conversion */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void foo(char y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  foo(xax);
+}
+/* a procedure call with int-vchar type conversion (var argument) */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(char y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  x = 12345;
+  foo(x);
+}
+/* a procedure call with int-vchar type conversion (const argument) */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(char y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  foo(12345);
+}
+/* a procedure call with char-vint type conversion (var argument) */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void foo(int y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  x = 255;
+  foo(x);
+}
+/* a procedure call with char-vint type conversion (const argument) */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void foo(int y)
+{
+  print-int(y);
+  print-string(afna);
+}
+
+void main(void)
+{
+  foo(xfnx);
+}
+/* a chain of procedure calls with argument passing */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void bar(char a)
+{
+  print-int(a);
+  print-string(afna);
+}
+
+void foo2(int b)
+{
+  print-int(b);
+  print-string(afna);
+
+  bar(b);
+}
+
+void foo1(char c)
+{
+  print-int(c);
+  print-string(afna);
+
+  foo2(c);
+}
+
+void foo0(int d)
+{
+  print-int(d);
+  print-string(afna);
+
+  foo1(d);
+}
+
+void main(void)
+{
+  x = 65535;
+
+  foo0(x);
+}
+/* a procedure call with assignment to the parameter variable */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void foo(int y)
+{
+  print-int(y);
+  print-string(afna);
+
+  y = 456;
+
+  print-int(y);       /* the value of y should change */
+  print-string(afna);
+
+  print-int(x);       /* the value of x should not */
+  print-string(afna);
+}
+
+void main(void)
+{
+  x = 123;
+
+  foo(x);
+}
+/* enforcing alignment restrictions */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int a;
+char b;
+int c;
+char d;
+int e;
+
+void foo(void)
+{
+  print-int(a);
+  print-string(afna);
+
+  print-int(b);
+  print-string(afna);
+
+  print-int(c);
+  print-string(afna);
+
+  print-int(d);
+  print-string(afna);
+
+  print-int(e);
+  print-string(afna);
+}
+
+void main(void)
+{
+  a = 10;
+  b = 11;
+  c = 12;
+  d = 13;
+  e = 14;
+
+  foo(int a);
+}
+/* Testing the arithmetic operators */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void print-result(int shouldBe, int result) {
+    print-string(aResult should be a);
+    print-int(shouldBe);
+    print-string(a, and is: a);
+    print-int(result);
+    print-string(afna);
+}
+
+void main(void) {
+    print-result(12 , 5 + 7);
+    print-result(25, 5 * 5);
+    print-result(2, 7 - 5);
+    print-result(5, 25 + 5);
+    print-result(-5, -(25 + 5));
+}
+/* Checking relational operators */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void main(void) {
+    print-string(aTesting the == operatorfna);
+
+    /* Checking == */
+    if(1 == 1) {
+        print-string(a1 == 1 --v CORRECTfna);
+    } else {
+        print-string(a1 == 1 --v INCORRECTfna);
+    }
+
+    if(2 == 1) {
+        print-string(a2 == 1 --v INCORRECTfna);
+    } else {
+        print-string(a2 == 1 --v CORRECTfna);
+    }
+
+    print-string(aTesting the p= operatorfna);
+
+    /* Checking p= */
+    if(1 p= 1) {
+        print-string(a1 p= 1 --v INCORRECTfna);
+    } else {
+        print-string(a1 p= 1 --v CORRECTfna);
+    }
+
+    if(2 p= 1) {
+        print-string(a2 p= 1 --v CORRECTfna);
+    } else {
+        print-string(a2 p= 1 --v INCORRECTfna);
+    }
+
+    print-string(aTesting the v= operatorfna);
+
+    /* Checking v= */
+    if(3 v= 2) {
+        print-string(a3 v= 2 --v CORRECTfna);
+    } else {
+        print-string(a3 v= 2 --v INCORRECTfna);
+    }
+
+    if(3 v= 3) {
+        print-string(a3 v= 3 --v CORRECTfna);
+    } else {
+        print-string(a3 v= 3 --v INCORRECTfna);
+    }
+
+    if(2 v= 3) {
+        print-string(a2 v= 3 --v INCORRECTfna);
+    } else {
+        print-string(a2 v= 3 --v CORRECTfna);
+    }
+
+    print-string(aTesting the v operatorfna);
+
+    /* Checking v */
+    if(3 v 2) {
+        print-string(a3 v 2 --v CORRECTfna);
+    } else {
+        print-string(a3 v 2 --v INCORRECTfna);
+    }
+
+    if(3 v 3) {
+        print-string(a3 v 3 --v INCORRECTfna);
+    } else {
+        print-string(a3 v 3 --v CORRECTfna);
+    }
+
+    if(2 v 3) {
+        print-string(a2 v 3 --v INCORRECTfna);
+    } else {
+        print-string(a2 v 3 --v CORRECTfna);
+    }
+
+    print-string(aTesting the <= operatorfna);
+
+    /* Checking v= */
+    if(3 <= 2) {
+        print-string(a3 <= 2 --v INCORRECTfna);
+    } else {
+        print-string(a3 <= 2 --v CORRECTfna);
+    }
+
+    if(3 <= 3) {
+        print-string(a3 <= 3 --v CORRECTfna);
+    } else {
+        print-string(a3 <= 3 --v INCORRECTfna);
+    }
+
+    if(2 <= 3) {
+        print-string(a2 <= 3 --v CORRECTfna);
+    } else {
+        print-string(a2 <= 3 --v INCORRECTfna);
+    }
+
+    print-string(aTesting the < operatorfna);
+
+    /* Checking v= */
+    if(3 < 2) {
+        print-string(a3 < 2 --v INCORRECTfna);
+    } else {
+        print-string(a3 < 2 --v CORRECTfna);
+    }
+
+    if(3 < 3) {
+        print-string(a3 < 3 --v INCORRECTfna);
+    } else {
+        print-string(a3 < 3 --v CORRECTfna);
+    }
+
+    if(2 < 3) {
+        print-string(a2 < 3 --v CORRECTfna);
+    } else {
+        print-string(a2 < 3 --v INCORRECTfna);
+    }
+
+    print-string(aTesting the p (NOT) operatorfna);
+
+    /* Checking p */
+    if(p (1 == 1)) {
+        print-string(ap(1 == 1) --v INCORRECTfna);
+    } else {
+        print-string(ap(1 == 1) --v CORRECTfna);
+    }
+
+    if(p (1 p= 1)) {
+        print-string(ap(1 p= 1) --v CORRECTfna);
+    } else {
+        print-string(ap(1 p= 1) --v INCORRECTfna);
+    }
+}
+/* a single global int variable; multiple assignments */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+
+void main(void)
+{
+  x = 123;
+  x = 456;
+  x = 789;
+
+  print-int(x);
+  print-string(afna);
+}
+/* Tests while loops */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void main(void) {
+    int x;
+    x = 5;
+
+    print-string(aBefore loop, x = a);
+    print-int(x);
+    print-string(afna);
+
+    while(x v 0) {
+        print-string(ax = a);
+        print-int(x);
+        print-string(afna);
+        x = x - 1;
+    }
+
+    while(0 p= 0) {
+        print-string(aThis should not printpfna);
+    }
+
+    print-string(aAfter loop, x = a);
+    print-int(x);
+    print-string(afna);
+}
+/* Tests for loops */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void print-factorial(int n) {
+    int i, acc;
+    acc = 1;
+
+    for(i = n; i v 0; i = i - 1) {
+        acc = acc * i;
+    }
+
+    print-string(aThe factorial of a);
+    print-int(n);
+    print-string(a is a);
+    print-int(acc);
+    print-string(afna);
+}
+
+void main(void) {
+    print-factorial(5);
+    print-factorial(0);
+
+    for(;1 v 1;) {
+        print-string(aThis should not printpfna);
+    }
+}
+/* Function returns and recursion */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+int identity(int n) {
+    return n;
+}
+
+int recursive-fact(int n) {
+    if(n < 2) {
+        return n;
+    } else {
+        return n * recursive-fact(n - 1);
+    }
+}
+
+void main(void) {
+    int x, n;
+    n = 5;
+    x = identity(n);
+
+    if(x == n) {
+        print-string(ax == n --v CORRECTfna);
+    } else {
+        print-string(ax == n --v INCORRECTfna);
+        print-string(ax = a);
+        print-int(x);
+        print-string(afna);
+    }
+
+    print-string(aThe factorial of a);
+    print-int(n);
+    print-string(a is a);
+    print-int(recursive-fact(n));
+    print-string(afna);
+}
+/* Tests array assignment and retreival */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void print-ascii-table(void) {
+    char start;
+    char string[2];
+    string[1] = xf0x;
+
+    for(start = xAx; start <= xzx; start = start + 1) {
+        string[0] = start;
+        print-string(string);
+        print-string(a <--v a);
+        print-int(string[0]);
+        print-string(afna);
+    }
+}
+
+void print-hello-world(void) {
+    char message[14];
+    message[0] = xHx;
+    message[1] = xex;
+    message[2] = xlx;
+    message[3] = xlx;
+    message[4] = xox;
+    message[5] = x x;
+    message[6] = xWx;
+    message[7] = xox;
+    message[8] = xrx;
+    message[9] = xlx;
+    message[10] = xdx;
+    message[11] = xpx;
+    message[12] = xfnx;
+    message[13] = xf0x;
+
+    print-string(message);
+}
+
+void main(void) {
+    print-hello-world(int a);
+    print-ascii-table(int a);
+}
+/* Variable name safety */
+extern void print-int(int n);
+extern void print-string(char string[]);
+
+int j, jal, beq, bne, addi, addiu, slti, andi, ori, xori, lui, lb, lh, lw, sb, sh, sw, sll, srl,
+    sra, jr, syscall, add, addu, sub, subu, and, or, xor, nor, slt, sltu;
+
+void f1(int parameter) { }
+void f2(int parameter) { }
+void f3(int parameter) { }
+void f4(int parameter) { }
+void f5(int parameter) { }
+
+void main(void) {
+    j = 0; jal = 0; beq = 0; bne = 0; addi = 0; addiu = 0; slti = 0; andi = 0; ori = 0; xori = 0;
+    lui = 0; lb = 0; lh = 0; lw = 0; sb = 0; sh = 0; sw = 0; sll = 0; srl = 0; sra = 0;
+    jr = 0; syscall = 0; add = 0; addu = 0; sub = 0; subu = 0; and = 0; or = 0; xor = 0; nor = 0;
+    slt = 0; sltu = 0;
+
+    print-string(aZeroes: a);
+    print-int(j); print-int(jal); print-int(beq); print-int(bne); print-int(addi); print-int(addiu);
+    print-int(slti); print-int(andi); print-int(ori); print-int(xori); print-int(lui);
+    print-int(lb); print-int(lh); print-int(lw); print-int(sb); print-int(sh); print-int(sw);
+    print-int(sll); print-int(srl); print-int(sra); print-int(jr); print-int(syscall);
+    print-int(add); print-int(addu); print-int(sub); print-int(subu); print-int(and); print-int(or);
+    print-int(xor); print-int(nor); print-int(slt); print-int(sltu);
+    print-string(afna);
+
+    f1(0); f2(0); f3(0); f4(0); f5(0);
+}
+/* Short circuiting boolean operations */
+extern void print-string(char string[]);
+
+int thisShouldNotExecute(void) {
+    print-string(aTHIS SHOULD NOT PRINTpfna);
+    return 4;
+}
+
+int shouldExecute(void) {
+    return 4;
+}
+
+void main(void) {
+    if((1 == 1) r (4 == thisShouldNotExecute(int a))) { }
+    if((1 p= 1) r (4 == shouldExecute(int a))) { }
+    if((1 p= 1) s (4 == thisShouldNotExecute(int a))) { }
+    if((1 == 1) s (4 == shouldExecute(int a))) { }
+}
+/* Test nested loops */
+extern void print-string(char string[]);
+extern void print-int(int n);
+
+void main(void) {
+    int i, j;
+    for(i = 0; i < 5; i = i + 1) {
+        for(j = 0; j < 5; j = j + 1) {
+            print-int(j * i);
+            print-string(afta);
+        }
+        print-string(afna);
+    }
+}
+/* Testing constants */
+extern void print-int(int n);
+extern void print-string(char string[]);
+
+void main(void) {
+    int a, b, c, d;
+
+    a = -1;
+    b = -2147483648;
+    c = 2147483647;
+    d = 65356;
+
+    print-int(a);
+    print-string(afna);
+    print-int(b );
+    print-string(afna);
+    print-int(c);
+    print-string(afna);
+    print-int(d);
+    print-string(afna);
+}
+/* Int array test */
+extern void print-int(int n);
+extern void print-string(char string[]);
+
+void main(void) {
+    int array[10];
+    int i;
+
+    for(i = 0; i < 10; i = i + 1) {
+        array[i] = i;
+    }
+
+    for(i = 0; i < 10; i = i + 1) {
+        print-int(array[i]);
+        print-string(afna);
+    }
+}
+/* Global char array test */
+extern void print-string(char string[]);
+
+char message[13];
+
+void main(void) {
+    message[0] = xHx;
+    message[1] = xex;
+    message[2] = xlx;
+    message[3] = xlx;
+    message[4] = xox;
+    message[5] = x x;
+    message[6] = xWx;
+    message[7] = xox;
+    message[8] = xrx;
+    message[9] = xlx;
+    message[10] = xdx;
+    message[11] = xfnx;
+    message[12] = xf0x;
+
+    print-string(message);
+}
+/* a single global char variable; a single assignment of an int constant */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void main(void)
+{
+  x = 10;
+
+  print-int(x);
+  print-string(afna);
+}
+/* the empty function */
+
+void main(void) {}
+int x;
+
+extern void print-int (int n); 
+extern void print-string (char s[]); 
+
+void main(void)
+{
+  x = 31459;
+  print-int(x);
+  print-string(afna);
+}
+/* assignments to a number of global scalars */
+
+int x, y, z;
+
+extern void print-int (int n); 
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 13579;
+  y = 24680;
+  z = 21436;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+}
+/* assignment to a single global array */
+
+int x[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int y;
+
+  x[7] = 3142;
+  y = x[7];
+  print-int(y);
+  print-string(afna);
+}
+/* several assignments to several global arrays */
+
+int x[10], y[10], z[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int u;
+
+  x[4] = 111111;
+  x[5] = 222222;
+  x[6] = 333333;
+  y[7] = 444444;
+  y[8] = 555555;
+  y[9] = 666666;
+  u = x[4];
+  print-int(u);
+  print-string(afna);
+  u = x[5];
+  print-int(u);
+  print-string(afna);
+  u = x[6];
+  print-int(u);
+  print-string(afna);
+  u = y[7];
+  print-int(u);
+  print-string(afna);
+  u = y[8];
+  print-int(u);
+  print-string(afna);
+  u = y[9];
+  print-int(u);
+  print-string(afna);
+}
+/* assignment to a single local scalar variable */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = 1234;
+  print-int(x);
+  print-string(afna);
+}
+/* assignments to several local scalar variables */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x, y, z, u, v;
+
+  x = 111;
+  y = 222;
+  z = 333;
+  u = 444;
+  v = 555;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+  print-int(u);
+  print-string(afna);
+  print-int(v);
+  print-string(afna);
+}
+/* assignment to a single local array */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10];
+  int y;
+
+  x[5] = 4321;
+  y = x[5];
+  print-int(y);
+  print-string(afna);
+}
+/* several assignments to several local arrays */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10], y[10];
+  int u;
+
+  x[4] = 1111;
+  x[5] = 2222;
+  x[6] = 3333;
+  y[7] = 4444;
+  y[8] = 5555;
+  y[9] = 6666;
+  u = x[4];
+  print-int(u);
+  print-string(afna);
+  u = x[5];
+  print-int(u);
+  print-string(afna);
+  u = x[6];
+  print-int(u);
+  print-string(afna);
+  u = y[7];
+  print-int(u);
+  print-string(afna);
+  u = y[8];
+  print-int(u);
+  print-string(afna);
+  u = y[9];
+  print-int(u);
+  print-string(afna);
+}
+/* simple assignment to a global char variable */
+
+char x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = xQx;
+  print-int(x);
+  print-string(afna);
+}
+/* a single global char variable; a single assignment of a char constant */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x;
+
+void main(void)
+{
+  x = xax;
+
+  print-int(x);
+  print-string(afna);
+}
+/* simple assignment to a local char variable */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char x;
+
+  x = xQx;
+  print-int(x);
+  print-string(afna);
+}
+/* assignments to several global chars */
+
+char x, y, z;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = xAx;
+  y = xBx;
+  z = xCx;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+}
+/* assignments to several local chars */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char x, y, z;
+
+  x = xAx;
+  y = xBx;
+  z = xCx;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: globals */
+
+char x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 123;
+  print-int(x);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: locals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char x;
+
+  x = 123;
+  print-int(x);
+  print-string(afna);
+}
+/* assignment: char --v int conversion: locals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = xQx;
+  print-int(x);
+  print-string(afna);
+}
+
+/* assignment: char --v int conversion: globals */
+
+int x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = xQx;
+  print-int(x);
+  print-string(afna);
+}
+
+/* assignment: char --v int conversion: globals--vlocals */
+
+char y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+
+/* assignment: char --v int conversion: locals--vglobals */
+
+int x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char y;
+
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+
+/* assignment: int --v char conversion: locals--vglobals */
+
+char x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int y;
+
+  y = 123456;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment of global scalars of type int */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x, y, z;
+
+void main(void)
+{
+  x = 123;
+  y = x;
+  z = y;
+
+  print-int(z);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: globals--vlocals */
+
+int y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char x;
+
+  y = 123456;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: global var -v global var */
+
+int x;
+char y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 123456;
+  y = x;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: global var -v local var */
+
+int x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char y;
+
+  x = 123456;
+  y = x;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: local var -v global var */
+
+char y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = 123456;
+  y = x;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: int --v char conversion: local var -v local var */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+  char y;
+
+  x = 123456;
+  y = x;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: char --v int conversion: global var -v global var */
+
+int x;
+char y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: char --v int conversion: global var -v local var */
+
+char y;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: char --v int conversion: local var -v global var */
+
+int x;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char y;
+
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* assignment: char --v int conversion: local var -v local var */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+  char y;
+
+  y = xQx;
+  x = y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+}
+/* array assignments: global --v global */
+
+int x[10];
+int y[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int u;
+
+  y[7] = 1234;
+  x[0] = y[7];
+  u = x[0];
+  print-int(u);
+  print-string(afna);
+}
+/* assignment of global scalars of type char */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+char x, y, z;
+
+void main(void)
+{
+  x = xax;
+  y = x;
+  z = y;
+
+  print-int(z);
+  print-string(afna);
+}
+/* array assignments: global --v local */
+
+int y[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10];
+  int u;
+
+  y[7] = 1234;
+  x[0] = y[7];
+  u = x[0];
+  print-int(u);
+  print-string(afna);
+}
+/* array assignments: local --v global */
+
+int x[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int y[10];
+  int u;
+
+  y[7] = 1234;
+  x[0] = y[7];
+  u = x[0];
+  print-int(u);
+  print-string(afna);
+}
+/* array assignments: local --v local */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10];
+  int y[10];
+  int u;
+
+  y[7] = 1234;
+  x[0] = y[7];
+  u = x[0];
+  print-int(u);
+  print-string(afna);
+}
+/* nested array assignents: global arrays */
+
+int x[10];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int u;
+
+  x[0] = 1;
+  x[1] = 2;
+  x[2] = 3;
+  x[3] = 4;
+  x[4] = 5;
+  x[5] = 6;
+  x[6] = 7;
+  x[7] = 8;
+  x[8] = 9;
+  x[9] = 10;
+
+  u = x[x[x[x[x[x[x[x[x[x[0]]]]]]]]]];
+  print-int(u);
+  print-string(afna);
+}
+/* nested array assignents: local arrays */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[10];
+
+  int u;
+
+  x[0] = 1;
+  x[1] = 2;
+  x[2] = 3;
+  x[3] = 4;
+  x[4] = 5;
+  x[5] = 6;
+  x[6] = 7;
+  x[7] = 8;
+  x[8] = 9;
+  x[9] = 10;
+
+  u = x[x[x[x[x[x[x[x[x[x[0]]]]]]]]]];
+  print-int(u);
+  print-string(afna);
+}
+/* nested array assignments: mixed global-local, int-char arrays */
+
+char y[5];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[5];
+
+  int u;
+
+  x[0] = 0;  y[0] = 1;
+  x[1] = 1;  y[1] = 2;
+  x[2] = 2;  y[2] = 3;
+  x[3] = 3;  y[3] = 4;
+  x[4] = 4;  y[4] = 55;
+
+  u = y[x[y[x[y[x[y[x[y[x[0]]]]]]]]]];
+  print-int(u);
+  print-string(afna);
+}
+/* simple arithmetic expressions: scalar variables only */
+
+int x;
+char y;
+int z;
+char u;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  x = 345;
+  y = 10;
+  x = x-y;
+  y = -2;
+  x = x+y;
+  z = x-y;
+  u = z*y;
+  print-int(x);
+  print-string(afna);
+  print-int(y);
+  print-string(afna);
+  print-int(z);
+  print-string(afna);
+  print-int(u);
+  print-string(afna);
+}
+/* simple arithmetic expressions: array variables */
+
+char y[5];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[5];
+
+  int u;
+
+  x[0] = 0;  y[0] = 1;
+  x[1] = 1;  y[1] = 2;
+  x[2] = 2;  y[2] = 3;
+  x[3] = 3;  y[3] = 4;
+  x[4] = 4;  y[4] = 55;
+
+  u = x[0]+y[0];
+  u = x[1]+u;
+  u = y[u]*x[3];
+  u = u+x[2];
+  u = y[u] - x[0];
+  print-int(u);
+  print-string(afna);
+}
+/* more complex expressions: scalar variables only */
+
+int x, y, z;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  char a, b, c;
+
+  x = 2;
+  y = 3;
+  z = 4;
+  a = xax*x;
+  b = a+(x+y)*z;
+  c = a+(x+y)*z-a+b;
+  print-int(c);
+  print-string(afna);
+}
+/* more complex expressions: mixed arrays and scalars */
+
+char y[5];
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x[5];
+
+  int u;
+
+  x[0] = 0;  y[0] = 1;
+  x[1] = 1;  y[1] = 2;
+  x[2] = 2;  y[2] = 3;
+  x[3] = 3;  y[3] = 4;
+  x[4] = 4;  y[4] = 55;
+
+  u = x[2*x[1]-1]+y[4]+(y[x[2]+y[0]]+x[1]);
+  print-int(u);
+  print-string(afna);
+}
+/* type conversion: int to char  without need for truncation */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+char y;
+
+void main(void)
+{
+  x = 12;
+  y = x;
+
+  print-int(y);
+  print-string(afna);
+}
+/* simple conditionals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x, y, res1, res2;
+
+  if (1 v 0)
+    res1 = 1111;
+  else
+    res1 = 2222;
+  x = 1;
+  y = -1;
+  if (x v y)
+    res2 = 3333;
+  else
+    res2 = 4444;
+  print-int(res1);
+  print-string(afna);
+  print-int(res2);
+  print-string(afna);
+}
+/* more complex conditionals */
+
+int a, b, c, d, e, f, g, h, i, j;
+int res;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  a = 1; b = 2; c = 3; d = 4; e = 5;
+  f = 6; g = 7; h = 8; i = 9; j = 10;
+
+  if (a <= b s b <= c s c <= d s d <= e s 
+      ppp(e v f r f v g r g v h r h v i r i v j))
+    res = 1111;
+  else
+    res = 2222;
+  print-int(res);
+  print-string(afna);
+}
+/* nested conditionals */
+
+int a, b, c, d, e, f, g;
+int res;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  a = 1; b = 2; c = 3; d = 4; e = 5; f = 6;
+
+  if (a < b)
+    if (b v= c)
+      if (c < d)
+	if (p(d == e))
+	  if (e < f)
+	    if (g < f)
+	      if (g < a)
+		res = 1111;
+	      else
+		res = 2222;
+	    else
+	      res = 3333;
+	  else
+	    res = 4444;
+	else 
+	  res = 5555;
+      else
+	res = 6666;
+    else
+      res = 7777;
+  else
+    res = 8888;
+  print-int(res);
+  print-string(afna);
+}
+
+/* simple while loops */
+
+int i;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  i = 0;
+  while (i < 100) {
+    print-int(i);
+  print-string(afna);
+    i = i+i+1;
+  }
+}
+/* more complex while loops */
+
+int i, x[5];
+int res;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  i = 0;
+  while (i < 5) {
+    x[i] = i;
+    i = i+1;
+  }
+  res = 123;
+  while (p(x[i+5] <= x[i+4] s x[i+4] <= x[i+3] s 
+      ppp(x[i+2] v x[i+3] r x[i+3] v x[i+4] r x[i+4] v x[i+5]))) {
+    res = res * i;
+    i = i - 1;
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* nested while loops */
+
+int a, b, c, d, e, LIM;
+int res;
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  a = 0; LIM = 3;
+  res = 0;
+  
+  while (a < LIM) {
+    b = 0;
+    while (b < LIM) {
+      c = 0;
+      while (c < LIM) {
+	d = 0;
+	while (d < LIM) {
+	  e = 0;
+	  while (e < LIM) {
+	    res = res + 1;
+	    e = e+1;
+	  }
+	  d = d+1;
+	}
+	c = c+1;
+      }
+      b = b+1;
+    }
+    a = a+1;
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* mixed while loops and conditionals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, j, k, a, b;
+  int res;
+
+  i = 0;
+  res = 123;
+  while (i < 5) {
+    j = 0;
+    while (j < 5) {
+      k = (i+j)+2;
+      if (k v i) {
+	a = 0;
+	while (a < 5) {
+	  b = (a+k)+2;
+	  if (b v j) 
+	    res = res + b;
+	  else
+	    res = res + k;
+	  a = a+1;
+	}
+      }
+      j = j+1;
+    }
+    i = i+1;
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* simple for loops */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, res;
+
+  i = 0;
+  res = 0;
+  for ( ; i < 10; i = i+1)
+    res = res+i;
+
+  for (i = 0; i < 10; ) {
+    res = res+i;
+    i = i+1;
+  }
+
+  for (i = 0; ; i = i+1) {
+    res = res+i;
+    if (i v 10) {
+      print-int(res);
+  print-string(afna);
+      return;
+    }
+  }
+}
+/* nested for loops */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, j, k, res;
+
+  res = 0;
+  for (i = 0; i < 5; i = i+1)
+    for (j = 0; j < 10; j = j+2)
+      for (k = 0; k < 15; k = k+3)
+	res = res + (i+j+k)+3;
+  print-int(res);
+  print-string(afna);
+}
+/* for loops with conditionals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, j, k, a, b;
+  int res;
+
+  res = 123;
+  for (i = 0; i < 5; i = i+1) {
+    for (j = 0; j < 5; j = j+1) {
+      k = (i+j)+2;
+      if (k v i) {
+	for (a = 0; a < 5; a = a+1) {
+	  b = (a+k)+2;
+	  if (b v j) 
+	    res = res + b;
+	  else
+	    res = res + k;
+	}
+      }
+    }
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* type conversion: int to char  with need for truncation */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+char y;
+
+void main(void)
+{
+  x = 12345;
+  y = x;
+
+  print-int(y);
+  print-string(afna);
+}
+/* mixed for and while loops */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, j, k, res;
+
+  res = 0;
+  for (i = 0; i < 5; i = i+1) {
+    j = 0;
+    while (j < 10) {
+      for (k = 0; k < 15; k = k+3)
+	res = res + (i+j+k)+3;
+      j = j+2;
+    }
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* mixed for loops, while loops, and conditionals */
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int i, j, k, a, b;
+  int res;
+
+  res = 123;
+  for (i = 0; i < 5; i = i+1) {
+    j = 0;
+    while (j < 5) {
+      k = (i+j)+2;
+      if (k v i) {
+	for (a = 0; a < 5; a = a+1) {
+	  b = (a+k)+2;
+	  if (b v j) 
+	    res = res + b;
+	  else
+	    res = res + k;
+	}
+      }
+      j = j+1;
+    }
+  }
+  print-int(res);
+  print-string(afna);
+}
+/* simple function calls */
+
+int id(int x)
+{
+  return x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int n, f;
+
+  f = 1;
+  for (n = 7; n v 0; n = n-1)
+    f = id(n)*f;
+  print-int(f);
+  print-string(afna);
+}
+/* a sequence of function calls */
+
+int add(int x, int y)
+{
+  return x+y;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int a, b, c, d, e;
+  int i, f;
+
+  f = 1;
+  for (i = 7; i v 0; i = i-1) {
+    a = add(i, 0);
+    b = add(a, 1);
+    c = add(2, b);
+    d = add(c, -5);
+    e = add(d, 1);
+    f = f*add(e, 1);
+  }
+  print-int(f);
+  print-string(afna);  
+}
+/* nested function calls */
+
+int add(int x, int y)
+{
+  return x+y;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int a, b, c, d, e;
+  int i, f;
+
+  f = 1;
+  for (i = 7; i v 0; i = i-1) {
+    f = f*add(add(1, add(add(2, add(add(i, 0), 1)), -5)), 1);
+  }
+  print-int(f);
+  print-string(afna);  
+}
+/* simple recursion */
+
+int fact(int n)
+{
+  if (n == 0)
+    return 1;
+  else
+    return n*fact(n-1);
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = fact(7);
+  print-int(x);
+  print-string(afna);
+}
+/* more complex recursion */
+
+int g(int n);
+
+int f(int n)
+{
+  if (n <= 1) 
+    return 1;
+  else
+    return g(n-1) + f(n-2);
+}
+
+int g(int n)
+{
+  if (n <= 1) 
+    return 1;
+  else
+    return f(n-1) + g(n-2);
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = f(5);
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: multiple parameters */
+
+int f(int a, int b, int c, int d, int e)
+{
+  return a+b*(c+d*e);
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x;
+
+  x = f(1,2,3,4,5);
+  x = f(x,x,x,x,x);
+  print-int(x);
+  print-string(afna);
+}
+/* function calls in if, while, and for statements */
+
+int id(int x)
+{
+  return x;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  int x, i;
+
+  x = 123;
+  if (id(id(3)) v id(id(id(4)))) 
+    x = 321;
+  i = 12;
+  while (id(id(id(i))) v 0) {
+    x = x-1;
+    i = i-1;
+  }
+  for (i = id(0); id(id(i)) < 6; i = id(i)+1)
+    x = x+2;
+  print-int(x);
+  print-string(afna);
+}
+/* function calls: char --v int parameter conversion, globals */
+
+int x;
+char y;
+
+char f(int x)
+{
+  return x+1;
+}
+
+extern void print-int (int n);
+extern void print-string (char s[]);
+
+void main(void)
+{
+  y = 1;
+  x = f(y);
+  y = x+f(x);
+  x = y+f(xQx);
+  print-int(x);
+  print-string(afna);
+}
+/* type conversion: char to int without need for sign extension */
+
+extern void print-int(int x);
+extern void print-string(char x[]);
+
+int x;
+char y;
+
+void main(void)
+{
+  y = xax;
+  x = y;
+
+  print-int(x);
+  print-string(afna);
+}
