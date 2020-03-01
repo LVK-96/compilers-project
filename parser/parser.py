@@ -295,6 +295,7 @@ class LL1_parser:
             if found:
                 break
 
+        # Reset current node to where it was before
         self.current_node = orig_node
 
     def report_error(self, lineno, msg):
@@ -337,10 +338,11 @@ class LL1_parser:
             self.input_ptr = (tmp[0], tmp[1])
             self.lineno = tmp[2]
             if self.input_ptr[1] == "$" and orig_input_ptr[1] == "$":
+                # We are at EOF, empty file and stop parsing
                 for i in range(1, len(self.stack)):
                     item = self.stack[i]
                     self.remove_node(item)
-                self.stack = deque([])
+                self.stack = deque([])  # Empty stack so parsing stops
                 self.report_error(orig_lineno + 1, f"Unexpected EndOfFile")
             else:
                 self.report_error(
