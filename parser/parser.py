@@ -1,5 +1,4 @@
 import sys
-from collections import deque
 from scanner import Scanner
 from anytree import Node, RenderTree
 
@@ -272,7 +271,7 @@ class LL1_parser:
         self.table = table
         self.terminals = terminals
         self.non_terminals = non_terminals
-        self.stack = deque(["$", "Program"])
+        self.stack = ["$", "Program"]
         self.scanner = scanner
         self.data = data
         self.input_ptr = self.scanner.get_next_token()
@@ -365,7 +364,7 @@ class LL1_parser:
                 for i in range(1, len(self.stack)):
                     item = self.stack[i]
                     self.remove_node(item)
-                self.stack = deque([])  # Empty stack so parsing stops
+                self.stack = []  # Empty stack so parsing stops
                 self.report_error(orig_lineno + 1, f"Unexpected EndOfFile")
             else:
                 self.report_error(
