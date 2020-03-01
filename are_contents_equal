@@ -20,26 +20,19 @@ def main(file_name1, file_name2):
     formatted_data1 = "".join(data1.split()).lower()
     formatted_data2 = "".join(data2.split()).lower()
 
-
     if formatted_data1 == formatted_data2:
         print("OK")
         sys.exit(0)
 
-    print("Difference found!")
-    print(formatted_data1)
-    print()
-    print(formatted_data2)
-
-    index = next((i for i, (char1, char2) in enumerate(zip(formatted_data1, formatted_data2)) if char1 != char2), None)
+    index = next((i for i, (char1, char2) in enumerate(
+        zip(formatted_data1, formatted_data2)) if char1 != char2), None)
     if index:
         print()
-        print(formatted_data1[max(0, index - 4):min(index + 4, len(formatted_data1) - 1)], f"difference at {index}")
+        print(f"difference at {index}")
 
     sys.exit(1)
 
 
-if __name__== "__main__":
+if __name__ == "__main__":
     argv = sys.argv[1:]
     main(argv[0], argv[1])
-
-
