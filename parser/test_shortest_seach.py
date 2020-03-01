@@ -261,6 +261,7 @@ ll1_table = [
         None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
 ]
 
+
 def find_simplest_construct(popped):
     options = [popped]
     shortest = None
@@ -287,7 +288,7 @@ def find_simplest_construct(popped):
                                 else:
                                     new_options.append(new_option)
                     # Only expand one rule per pass
-                    break 
+                    break
 
         options = new_options
         candidates = []
@@ -302,7 +303,7 @@ def find_simplest_construct(popped):
                     break
             if candidate and len(elems_no_eps) > 0:
                 candidates.append(elems_no_eps)
-        
+
         if len(candidates) > 0:
             shortest = candidates[0]
             shortest_len = len(candidates[0])
