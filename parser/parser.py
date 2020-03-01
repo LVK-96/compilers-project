@@ -371,15 +371,15 @@ class LL1_parser:
                 self.report_error(
                     orig_lineno, f"illegal {orig_input_ptr[to_compare]}")
         else:
-            if self.stack[-1] != "$":
-                popped = self.stack.pop()
-                if popped in non_terminals:
-                    # Synch
-                    self.remove_node(popped)
-                    self.report_error(
-                        orig_lineno, f'missing "{self.find_simplest_construct(popped)}"')
-                else:
-                    # Mismatched terminal at head of stack and input
+            popped = self.stack.pop()
+            if popped in non_terminals:
+                # Synch
+                self.remove_node(popped)
+                self.report_error(
+                    orig_lineno, f'missing "{self.find_simplest_construct(popped)}"')
+            else:
+                # Mismatched terminal at head of stack and input
+                if popped != "$":
                     self.report_error(orig_lineno, f'missing "{popped}"')
 
     def step(self):
@@ -390,7 +390,6 @@ class LL1_parser:
 
         if self.input_ptr[to_compare] == head:
             popped = self.stack.pop()
-
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
             tmp = self.scanner.get_next_token()
