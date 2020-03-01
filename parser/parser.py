@@ -166,55 +166,104 @@ follows = {
 }
 
 ll1_table = [
-    [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'Declaration-list', 'Declaration-list', None, None, None, None, None, None, None, 'Declaration-list'],
-    ['EPSILON', 'EPSILON', None, 'EPSILON', None, None, None, None, 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, 'EPSILON', None, 'Declaration Declaration-list', 'Declaration Declaration-list', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON'],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'Declaration-initial Declaration-prime', 'Declaration-initial Declaration-prime', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    [None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'Type-specifier ID', 'Type-specifier ID', None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, 'Var-declaration-prime', None, None, 'Var-declaration-prime', None, 'Fun-declaration-prime', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', 'SYNCH', None, ';', None, None, '[ NUM ] ;', None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, '( Params ) Compound-stmt', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'void', 'int', None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'void Param-list-void-abtar', 'int ID Param-prime Param-list', None, None, None, None, None, None, None, None],
-    ['ID Param-prime Param-list', None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, ', Param Param-list', None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, 'SYNCH', None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'Declaration-initial Param-prime', 'Declaration-initial Param-prime', None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, 'EPSILON', '[ ]', None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, '{ Declaration-list Statement-list }', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['Statement Statement-list', 'Statement Statement-list', None, 'Statement Statement-list', None, None, None, None, 'Statement Statement-list', None, 'Statement Statement-list', 'EPSILON', None, None, None, None, None, None, 'Statement Statement-list', None, None, None, 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'EPSILON', 'EPSILON', 'Statement Statement-list', None],
-    ['Expression-stmt', 'Expression-stmt', None, 'Expression-stmt', None, None, None, None, 'Expression-stmt', None, 'Compound-stmt', 'SYNCH', None, None, None, None, None, None, 'Selection-stmt', 'SYNCH', None, None, 'Iteration-stmt', 'Expression-stmt', 'Expression-stmt', 'Switch-stmt', 'SYNCH', 'SYNCH', 'Return-stmt', None],
-    ['Expression ;', 'Expression ;', None, ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'break ;', 'continue ;', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'if ( Expression ) Statement else Statement', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'while ( Expression ) Statement', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'return Return-stmt-prime', None],
-    ['Expression ;', 'Expression ;', None, ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'switch ( Expression ) { Case-stmts Default-stmt }', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    [None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', 'Case-stmt Case-stmts', None, None],
-    [None, None, None, None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'SYNCH', 'case NUM : Statement-list', None, None],
-    [None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'default : Statement-list', None, None, None],
-    ['ID B', 'Simple-expression-zegond', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Simple-expression-zegond', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, '= Expression', 'Simple-expression-prime', None, 'Simple-expression-prime', '[ Expression ] H', 'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', None, None, 'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', None, 'Simple-expression-prime', 'Simple-expression-prime', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, '= Expression', 'G D C', None, 'G D C', None, 'G D C', None, 'G D C', None, None, 'G D C', 'G D C', 'G D C', None, 'G D C', 'G D C', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Additive-expression-zegond C', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Additive-expression-zegond C', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, 'Additive-expression-prime C', 'Additive-expression-prime C', 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, None, None, None, None, 'Relop Additive-expression', 'Relop Additive-expression', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, '<', '==', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Term D', 'Term D', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term D', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'Term-prime D', None, 'Term-prime D', None, 'Term-prime D', 'Term-prime D', 'Term-prime D', None, None, 'Term-prime D', 'Term-prime D', 'Term-prime D', None, 'Term-prime D', 'Term-prime D', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Term-zegond D', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term-zegond D', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'Addop Term D', 'Addop Term D', None, None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, None, None, '+', '-', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Factor G', 'Factor G', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor G', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'Factor-prime G', None, 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', 'Factor-prime G', None, None, 'Factor-prime G', 'Factor-prime G', 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Factor-zegond G', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor-zegond G', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'EPSILON', 'EPSILON', '* Factor G', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['ID Var-call-prime', 'NUM', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'Var-prime', None, 'Var-prime', 'Var-prime', 'Var-prime', '( Args )', 'Var-prime', None, None, 'Var-prime', 'Var-prime', 'Var-prime', None, 'Var-prime', 'Var-prime', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'EPSILON', None, 'EPSILON', '[ Expression ]', 'EPSILON', None, 'EPSILON', None, None, 'EPSILON', 'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', '( Args )', 'EPSILON', None, None, 'EPSILON', 'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'NUM', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Arg-list', 'Arg-list', None, None, None, None, None, None, 'Arg-list', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Expression Arg-list-prime', 'Expression Arg-list-prime', None, None, None, None, None, None, 'Expression Arg-list-prime', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, ', Expression Arg-list-prime', None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+        None, 'Declaration-list', 'Declaration-list', None, None, None, None, None, None, None, 'Declaration-list'],
+    ['EPSILON', 'EPSILON', None, 'EPSILON', None, None, None, None, 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, 'EPSILON', None,
+        'Declaration Declaration-list', 'Declaration Declaration-list', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON'],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None,
+        'Declaration-initial Declaration-prime', 'Declaration-initial Declaration-prime', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
+    [None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None,
+        None, None, None, None, 'Type-specifier ID', 'Type-specifier ID', None, None, None, None, None, None, None, None],
+    ['SYNCH', 'SYNCH', None, 'Var-declaration-prime', None, None, 'Var-declaration-prime', None, 'Fun-declaration-prime', None, 'SYNCH', 'SYNCH',
+        None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
+    ['SYNCH', 'SYNCH', None, ';', None, None, '[ NUM ] ;', None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None,
+        None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, '( Params ) Compound-stmt', None, 'SYNCH', 'SYNCH', None, None, None,
+     None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
+    ['SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+        None, None, None, None, None, 'void', 'int', None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None,
+        None, 'void Param-list-void-abtar', 'int ID Param-prime Param-list', None, None, None, None, None, None, None, None],
+    ['ID Param-prime Param-list', None, None, None, None, None, None, None, None, 'EPSILON', None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, ', Param Param-list', None, None, None, 'EPSILON', None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, 'SYNCH', None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None,
+        None, 'Declaration-initial Param-prime', 'Declaration-initial Param-prime', None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, 'EPSILON', '[ ]', None, None, 'EPSILON', None, None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, '{ Declaration-list Statement-list }', 'SYNCH', None, None,
+        None, None, None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
+    ['Statement Statement-list', 'Statement Statement-list', None, 'Statement Statement-list', None, None, None, None, 'Statement Statement-list', None, 'Statement Statement-list', 'EPSILON', None, None, None, None, None,
+        None, 'Statement Statement-list', None, None, None, 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'EPSILON', 'EPSILON', 'Statement Statement-list', None],
+    ['Expression-stmt', 'Expression-stmt', None, 'Expression-stmt', None, None, None, None, 'Expression-stmt', None, 'Compound-stmt', 'SYNCH', None, None, None, None,
+        None, None, 'Selection-stmt', 'SYNCH', None, None, 'Iteration-stmt', 'Expression-stmt', 'Expression-stmt', 'Switch-stmt', 'SYNCH', 'SYNCH', 'Return-stmt', None],
+    ['Expression ;', 'Expression ;', None, ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None, None,
+        None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'break ;', 'continue ;', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None,
+        'if ( Expression ) Statement else Statement', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None,
+        'SYNCH', 'SYNCH', None, None, 'while ( Expression ) Statement', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None,
+        None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'return Return-stmt-prime', None],
+    ['Expression ;', 'Expression ;', None, ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None,
+        None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
+    ['SYNCH', 'SYNCH', None, 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH',
+        'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'switch ( Expression ) { Case-stmts Default-stmt }', 'SYNCH', 'SYNCH', 'SYNCH', None],
+    [None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None,
+        None, None, None, None, None, None, None, None, None, 'EPSILON', 'Case-stmt Case-stmts', None, None],
+    [None, None, None, None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None,
+        None, None, None, None, None, None, None, None, None, 'SYNCH', 'case NUM : Statement-list', None, None],
+    [None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None,
+        None, None, None, None, None, None, None, None, None, 'default : Statement-list', None, None, None],
+    ['ID B', 'Simple-expression-zegond', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Simple-expression-zegond', 'SYNCH',
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, '= Expression', 'Simple-expression-prime', None, 'Simple-expression-prime', '[ Expression ] H', 'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', None, None,
+        'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', None, 'Simple-expression-prime', 'Simple-expression-prime', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, '= Expression', 'G D C', None, 'G D C', None, 'G D C', None, 'G D C', None, None, 'G D C', 'G D C',
+        'G D C', None, 'G D C', 'G D C', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, 'Additive-expression-zegond C', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Additive-expression-zegond C', 'SYNCH',
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, 'Additive-expression-prime C',
+        'Additive-expression-prime C', 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, None, None, None, None,
+        'Relop Additive-expression', 'Relop Additive-expression', None, None, None, None, None, None, None, None, None, None, None, None],
+    ['SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, None, None, None, None,
+        None, None, '<', '==', None, None, None, None, None, None, None, None, None, None, None, None],
+    ['Term D', 'Term D', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term D', 'SYNCH', None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'Term-prime D', None, 'Term-prime D', None, 'Term-prime D', 'Term-prime D', 'Term-prime D', None, None, 'Term-prime D',
+        'Term-prime D', 'Term-prime D', None, 'Term-prime D', 'Term-prime D', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, 'Term-zegond D', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term-zegond D', 'SYNCH', None, None, None,
+        None, None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'Addop Term D',
+        'Addop Term D', None, None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
+    ['SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, None, None, '+', '-', None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    ['Factor G', 'Factor G', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor G', 'SYNCH', None, None, 'SYNCH',
+        'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'Factor-prime G', None, 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', 'Factor-prime G', None, None, 'Factor-prime G',
+        'Factor-prime G', 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, 'Factor-zegond G', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor-zegond G', 'SYNCH', None, None, 'SYNCH',
+        'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'EPSILON', 'EPSILON',
+        '* Factor G', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
+    ['ID Var-call-prime', 'NUM', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH',
+        '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'Var-prime', None, 'Var-prime', 'Var-prime', 'Var-prime',
+        '( Args )', 'Var-prime', None, None, 'Var-prime', 'Var-prime', 'Var-prime', None, 'Var-prime', 'Var-prime', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'EPSILON', None, 'EPSILON', '[ Expression ]', 'EPSILON', None, 'EPSILON', None, None, 'EPSILON',
+        'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON',
+        '( Args )', 'EPSILON', None, None, 'EPSILON', 'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, 'NUM', None, 'SYNCH', None, 'SYNCH', None, 'SYNCH', '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH',
+     'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
+    ['Arg-list', 'Arg-list', None, None, None, None, None, None, 'Arg-list', 'EPSILON', None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    ['Expression Arg-list-prime', 'Expression Arg-list-prime', None, None, None, None, None, None, 'Expression Arg-list-prime',
+        'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+    [None, None, None, None, None, ', Expression Arg-list-prime', None, None, None, 'EPSILON', None, None, None,
+        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
 ]
 
 
@@ -234,7 +283,6 @@ class LL1_parser:
 
     def remove_node(self, name):
         # Used in error handling to remove all nonterminals of a node
-        # check children for start
         orig_node = self.current_node
         while True:
             self.current_node = self.current_node.parent
@@ -264,12 +312,14 @@ class LL1_parser:
         shortest = applicable[0]
         id_num = ["ID", "NUM"]
         open_brackets = ["(", "[", "{"]
+        # Order of simplicity (ID and NUM are simplest)
+        # ID, NUM < keywords < symbols - open_brackets < open_brackets
         for a in applicable[1:]:
             if a in id_num:
                 shortest = a
             if a in keywords and shortest not in id_num:
                 shortest = a
-            if a in symbols and shortest not in id_num or shortest not in keywords:
+            if a in symbols and (shortest not in id_num or shortest not in keywords):
                 if a in open_brackets:
                     if shortest not in symbols - open_brackets:
                         shortest = a
@@ -281,6 +331,7 @@ class LL1_parser:
     def handle_error(self, production, to_compare):
         orig_lineno = self.lineno
         if not production and self.stack[-1] in non_terminals:
+            # Empty production
             orig_input_ptr = self.input_ptr
             tmp = self.scanner.get_next_token()
             self.input_ptr = (tmp[0], tmp[1])
@@ -292,13 +343,17 @@ class LL1_parser:
                 self.stack = deque([])
                 self.report_error(orig_lineno + 1, f"Unexpected EndOfFile")
             else:
-                self.report_error(orig_lineno, f"illegal {orig_input_ptr[to_compare]}")
+                self.report_error(
+                    orig_lineno, f"illegal {orig_input_ptr[to_compare]}")
         else:
             popped = self.stack.pop()
             if popped in non_terminals:
+                # Synch
                 self.remove_node(popped)
-                self.report_error(orig_lineno, f'missing "{self.find_simplest_construct(popped)}"')
+                self.report_error(
+                    orig_lineno, f'missing "{self.find_simplest_construct(popped)}"')
             else:
+                # Mismatched terminal at head of stack and input
                 self.report_error(orig_lineno, f'missing "{popped}"')
 
     def step(self):
