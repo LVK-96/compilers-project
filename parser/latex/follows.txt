@@ -1,0 +1,96 @@
+"Program"& ["$"] \\
+\hline
+"Declaration-list"& ["break", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "$", "continue", "NUM"]\\
+\hline
+"Declaration"& ["void", "int", "switch", "(", "break", "default", "while", "NUM", ";", "ID", "{", "if", "return", "}", "$", "continue", "case"]\\
+\hline
+"Declaration-initial"& [",", "(", "[", ")", ";"]\\
+"Declaration-prime"& ["void", "int", "switch", "(", "break", "default", "while", "NUM", ";", "ID", "{", "if", "return", "}", "$", "continue", "case"]\\
+\hline
+"Var-declaration-prime"& ["void", "int", "switch", "(", "break", "default", "while", "NUM", ";", "ID", "{", "if", "return", "}", "$", "continue", "case"]\\
+\hline
+"Fun-declaration-prime"& ["void", "int", "switch", "(", "break", "default", "while", "NUM", ";", "ID", "{", "if", "return", "}", "$", "continue", "case"]\\
+\hline
+"Type-specifier"& ["ID"]\\
+\hline
+"Params"& [")"]\\
+\hline
+"Param-list-void-abtar"& [")"]\\
+\hline
+"Param-list"& [")"]\\
+\hline
+"Param"& [",", ")"]\\
+\hline
+"Param-prime"& [",", ")"]\\
+\hline
+"Compound-stmt"& ["void", "int", "switch", "(", "break", "else", "default", "while", ";", "ID", "{", "if", "return", "case", "}", "$", "continue", "NUM"]\\
+\hline
+"Statement-list"& ["}", "default", "case"]\\
+\hline
+"Statement"& ["break", "else", "switch", "(", "default", "while", "NUM", ";", "ID", "{", "if", "return", "}", "continue", "case"]\\
+\hline
+"Expression-stmt"& ["break", "else", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "continue", "NUM"]\\
+\hline
+"Selection-stmt"& ["break", "else", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "continue", "NUM"]\\
+\hline
+"Iteration-stmt"& ["break", "else", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "continue", "NUM"]\\
+\hline
+"Return-stmt"& ["break", "else", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "continue", "NUM"]\\
+\hline
+"Return-stmt-prime"& ["break", "else", "switch", "(", "default", "while", ";", "ID", "{", "if", "return", "case", "}", "continue", "NUM"]\\
+\hline
+"Switch-stmt"& ["break", "else", "switch", "(", "default", "}", ";", "ID", "{", "if", "return", "case", "while", "continue", "NUM"]\\
+\hline
+"Case-stmts"& ["}", "default"]\\
+\hline
+"Case-stmt"& ["}", "default", "case"]\\
+\hline
+"Default-stmt"& ["}"]\\
+\hline
+"Expression"& [";", ",", ")", "]"]\\
+\hline
+"B"& [";", ",", ")", "]"]\\
+\hline
+"H"& [";", ",", ")", "]"]\\
+\hline
+"Simple-expression-zegond"& [";", ",", ")", "]"]\\
+\hline
+"Simple-expression-prime"& [";", ",", ")", "]"]\\
+\hline
+"C"& [";", ",", ")", "]"]\\
+\hline
+"Relop"& ["ID", "(", "NUM"]\\
+\hline
+"Additive-expression"& [";", ",", ")", "]"]\\
+\hline
+"Additive-expression-prime"& [",", ")", "==", "]", ";", "<"]\\
+\hline
+"Additive-expression-zegond"& [",", ")", "==", "]", ";", "<"]\\
+\hline
+"D"& [",", ")", "==", "]", ";", "<"]\\
+\hline
+"Addop"& ["ID", "(", "NUM"]\\
+\hline
+"Term"& ["-", ",", "]", "==", ")", ";", "+", "<"]\\
+\hline
+"Term-prime"& ["-", ",", "]", "==", ")", ";", "+", "<"]\\
+\hline
+"Term-zegond"& ["-", ",", "]", "==", ")", ";", "+", "<"]\\
+\hline
+"G"& ["-", ",", "]", "==", ")", ";", "+", "<"]\\
+\hline
+"Factor"& ["-", ",", "*", ")", "==", "]", ";", "+", "<"]\\
+\hline
+"Var-call-prime"& ["-", ",", "*", ")", "==", "]", ";", "+", "<"]\\
+\hline
+"Var-prime"& ["-", ",", "*", ")", "==", "]", ";", "+", "<"]\\
+\hline
+"Factor-prime"& ["-", ",", "*", ")", "==", "]", ";", "+", "<"]\\
+\hline
+"Factor-zegond"& ["-", ",", "*", ")", "==", "]", ";", "+", "<"]\\
+\hline
+"Args"& [")"]\\
+\hline
+"Arg-list"& [")"]\\
+\hline
+"Arg-list-prime"& [")"]\\
