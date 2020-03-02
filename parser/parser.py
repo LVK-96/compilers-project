@@ -1,3 +1,8 @@
+"""
+leo kivikunnas 525925
+jaakko koskela 526050
+"""
+
 import sys
 from scanner import Scanner
 from anytree import Node, RenderTree
