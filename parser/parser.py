@@ -3,7 +3,6 @@ leo kivikunnas 525925
 jaakko koskela 526050
 """
 
-import sys
 from scanner import Scanner
 from anytree import Node, RenderTree
 
@@ -419,12 +418,8 @@ class LL1_parser:
             f.close()
 
 
-def main(argv):
+def main():
     filename = "input.txt"
-    # TODO: Remove this before turn in
-    if argv and argv[0]:
-        filename = argv[0]
-
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
@@ -450,5 +445,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    argv = sys.argv[1:]
-    main(argv)
+    main()
