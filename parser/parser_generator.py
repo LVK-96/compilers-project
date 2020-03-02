@@ -1,7 +1,7 @@
 import sys
 import json
 
-symbols = ["=", ";", ":", ",", "[", "]", "(", ")", "{", "}",
+symbols = [";", ":", ",", "[", "]", "(", ")", "{", "}",
            "+", "-", "*", "=", "<", "=="]
 keywords = ["if", "else", "void", "int", "while", "break",
             "continue", "switch", "default", "case", "return"]
