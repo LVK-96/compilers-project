@@ -1,4 +1,10 @@
+"""
+leo kivikunnas 525925
+jaakko koskela 526050
+"""
+
 #intermediate code generation is not done yet
+from parser import get_addr
 
 #import symbol table
 #context stack?
@@ -13,7 +19,6 @@ def pid(id):
     #get the address from the table and push that - how to do type checks 
     # push token now and get addresses later when you generate the three address code - after type checking!
 
-    #the current input needs to be given as a parameter or we would need to be able to query it from the parser???
     ss.append()
 
 def add():
