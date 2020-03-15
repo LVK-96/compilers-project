@@ -183,7 +183,6 @@ class LL1_parser:
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
-        self.symbol_table = keywords.copy()
         scanner = Scanner(filename, symbols, keywords, data)
         semantic_analyzer = SemanticAnalyzer(self)
         self.scanner = scanner
@@ -377,9 +376,6 @@ class LL1_parser:
 
             f.close()
 
-def get_addr():
-    #placeholder for getting the current input token for semantic analysis
-    return ("ID", 1)
 
 def main(argv):
     filename = "input.txt"
