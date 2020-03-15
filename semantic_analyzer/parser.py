@@ -2,8 +2,10 @@
 leo kivikunnas 525925
 jaakko koskela 526050
 """
-
+import sys
+import parser_generator
 from scanner import Scanner
+from semantic_analyzer import SemanticAnalyzer
 from anytree import Node, RenderTree
 
 symbols = [";", ":", ",", "[", "]", "(", ")", "{", "}",
@@ -168,72 +170,25 @@ follows = {
     "Arg-list-prime": [")"]
 }
 
-ll1_table = [
-    [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'Declaration-list', 'Declaration-list', None, None, None, None, None, None, None, 'Declaration-list'],
-    ['EPSILON', 'EPSILON', 'EPSILON', None, None, None, None, 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, 'EPSILON', None, 'Declaration Declaration-list', 'Declaration Declaration-list', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON', 'EPSILON'],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'Declaration-initial Declaration-prime', 'Declaration-initial Declaration-prime', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    [None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'Type-specifier ID', 'Type-specifier ID', None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', 'Var-declaration-prime', None, None, 'Var-declaration-prime', None, 'Fun-declaration-prime', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', 'SYNCH', ';', None, None, '[ NUM ] ;', None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, '( Params ) Compound-stmt', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'void', 'int', None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'void Param-list-void-abtar', 'int ID Param-prime Param-list', None, None, None, None, None, None, None, None],
-    ['ID Param-prime Param-list', None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, ', Param Param-list', None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, 'SYNCH', None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, 'Declaration-initial Param-prime', 'Declaration-initial Param-prime', None, None, None, None, None, None, None, None],
-    [None, None, None, None, 'EPSILON', '[ ]', None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, '{ Declaration-list Statement-list }', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH'],
-    ['Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', None, None, None, None, 'Statement Statement-list', None, 'Statement Statement-list', 'EPSILON', None, None, None, None, None, None, 'Statement Statement-list', None, None, None, 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'Statement Statement-list', 'EPSILON', 'EPSILON', 'Statement Statement-list', None],
-    ['Expression-stmt', 'Expression-stmt', 'Expression-stmt', None, None, None, None, 'Expression-stmt', None, 'Compound-stmt', 'SYNCH', None, None, None, None, None, None, 'Selection-stmt', 'SYNCH', None, None, 'Iteration-stmt', 'Expression-stmt', 'Expression-stmt', 'Switch-stmt', 'SYNCH', 'SYNCH', 'Return-stmt', None],
-    ['Expression ;', 'Expression ;', ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'break ;', 'continue ;', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'if ( Expression ) Statement else Statement', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'while ( Expression ) Statement', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'return Return-stmt-prime', None],
-    ['Expression ;', 'Expression ;', ';', None, None, None, None, 'Expression ;', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    ['SYNCH', 'SYNCH', 'SYNCH', None, None, None, None, 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', 'switch ( Expression ) { Case-stmts Default-stmt }', 'SYNCH', 'SYNCH', 'SYNCH', None],
-    [None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'EPSILON', 'Case-stmt Case-stmts', None, None],
-    [None, None, None, None, None, None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'SYNCH', 'case NUM : Statement-list', None, None],
-    [None, None, None, None, None, None, None, None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'default : Statement-list', None, None, None],
-    ['ID B', 'Simple-expression-zegond', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Simple-expression-zegond', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'Simple-expression-prime', None, 'Simple-expression-prime', '[ Expression ] H', 'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', None, None, 'Simple-expression-prime', 'Simple-expression-prime', 'Simple-expression-prime', '= Expression', 'Simple-expression-prime', 'Simple-expression-prime', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'G D C', None, 'G D C', None, 'G D C', None, 'G D C', None, None, 'G D C', 'G D C', 'G D C', '= Expression', 'G D C', 'G D C', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Additive-expression-zegond C', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Additive-expression-zegond C', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, 'Additive-expression-prime C', 'Additive-expression-prime C', 'Additive-expression-prime C', None, 'Additive-expression-prime C', 'Additive-expression-prime C', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, None, None, None, None, 'Relop Additive-expression', 'Relop Additive-expression', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, None, None, None, None, 'SYNCH', None, None, None, None, None, None, None, '<', '==', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Term D', 'Term D', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term D', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'Term-prime D', None, 'Term-prime D', None, 'Term-prime D', 'Term-prime D', 'Term-prime D', None, None, 'Term-prime D', 'Term-prime D', 'Term-prime D', None, 'Term-prime D', 'Term-prime D', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Term-zegond D', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Term-zegond D', 'SYNCH', None, None, None, None, None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'Addop Term D', 'Addop Term D', None, None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['SYNCH', 'SYNCH', None, None, None, None, None, 'SYNCH', None, None, None, '+', '-', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Factor G', 'Factor G', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor G', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'Factor-prime G', None, 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', 'Factor-prime G', None, None, 'Factor-prime G', 'Factor-prime G', 'Factor-prime G', None, 'Factor-prime G', 'Factor-prime G', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'Factor-zegond G', 'SYNCH', None, 'SYNCH', None, 'SYNCH', 'Factor-zegond G', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', None, None, 'EPSILON', 'EPSILON', '* Factor G', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['ID Var-call-prime', 'NUM', 'SYNCH', None, 'SYNCH', None, 'SYNCH', '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'Var-prime', None, 'Var-prime', 'Var-prime', 'Var-prime', '( Args )', 'Var-prime', None, None, 'Var-prime', 'Var-prime', 'Var-prime', None, 'Var-prime', 'Var-prime', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'EPSILON', None, 'EPSILON', '[ Expression ]', 'EPSILON', None, 'EPSILON', None, None, 'EPSILON', 'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, 'EPSILON', None, 'EPSILON', None, 'EPSILON', '( Args )', 'EPSILON', None, None, 'EPSILON', 'EPSILON', 'EPSILON', None, 'EPSILON', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, 'NUM', 'SYNCH', None, 'SYNCH', None, 'SYNCH', '( Expression )', 'SYNCH', None, None, 'SYNCH', 'SYNCH', 'SYNCH', None, 'SYNCH', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Arg-list', 'Arg-list', None, None, None, None, None, 'Arg-list', 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    ['Expression Arg-list-prime', 'Expression Arg-list-prime', None, None, None, None, None, 'Expression Arg-list-prime', 'SYNCH', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-    [None, None, None, None, ', Expression Arg-list-prime', None, None, None, 'EPSILON', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-]
+ll1_table = parser_generator.gen_table()
 
 
 class LL1_parser:
-    def __init__(self, table, terminals, non_terminals, data, scanner):
+    def __init__(self, table, terminals, non_terminals, data, filename):
         self.table = table
         self.terminals = terminals
         self.non_terminals = non_terminals
         self.stack = ["$", "Program"]
-        self.scanner = scanner
-        self.data = data
-        self.input_ptr = self.scanner.get_next_token()
         self.tree = Node("Program")
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
+        self.symbol_table = keywords.copy()
+        scanner = Scanner(filename, symbols, keywords, data)
+        semantic_analyzer = SemanticAnalyzer(self)
+        self.scanner = scanner
+        self.semantic_analyzer = semantic_analyzer
+        self.input_ptr = self.scanner.get_next_token()
 
     def remove_node(self, name):
         # Used in error handling to remove all nonterminals of a node
@@ -343,7 +298,11 @@ class LL1_parser:
         if self.input_ptr[0] == "NUM" or self.input_ptr[0] == "ID":
             to_compare = 0
 
-        if self.input_ptr[to_compare] == head:
+        if head.startswith("#"):
+            self.semantic_analyzer.semantic_actions(head)
+            self.stack.pop()
+
+        elif self.input_ptr[to_compare] == head:
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
@@ -383,7 +342,8 @@ class LL1_parser:
         left_node = None
 
         for item in items:
-            left_node = Node(item, parent=self.current_node)
+            if not item.startswith("#"):
+                left_node = Node(item, parent=self.current_node)
 
         if self.current_node.name in ["ID", "NUM"]:
             self.current_node.name = f"({input_ptr[0]}, {input_ptr[1]})"
@@ -418,20 +378,21 @@ class LL1_parser:
             f.close()
 
 
-def main():
+def main(argv):
     filename = "input.txt"
+    if len(argv) > 0:
+        filename = argv[0]
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
         f.close()
 
-    scanner = Scanner(filename, symbols, keywords, data)
     parser = LL1_parser(
         ll1_table,
         terminals,
         non_terminals,
         data,
-        scanner
+        filename
     )
     while True:
         parser.step()
@@ -439,10 +400,10 @@ def main():
             break
     parser.write_tree_to_file()
     parser.write_errors_to_file()
-    scanner.write_tokens_to_file()
-    scanner.write_symbol_table_to_file()
-    scanner.write_errors_to_file()
+    parser.scanner.write_tokens_to_file()
+    parser.scanner.write_symbol_table_to_file()
+    parser.scanner.write_errors_to_file()
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1::])
