@@ -1,75 +1,71 @@
 """
-leo kivikunnas 525925
-jaakko koskela 526050
+Leo Kivikunnas 525925
+Jaakko Koskela 526050
 """
 
-#intermediate code generation is not done yet
+import weakref
 from parser import get_addr
 
-#import symbol table
-#context stack?
 
-#semantic stack
-ss = [] #error handlin if ss is unexpectedly empty
+class SemanticAnalyzer:
+    def __init__(self, parser):
+        self.parser = weakref.ref(parser)
+        self.ss = 0
+        #self.i = 0  # index to address table
+        #self.three_address_codes = []
 
-#semantic routines
+    def semantic_actions(self, action_symbol):
+        if(action_symbol == "#PID"):
+            pass
+        elif(action_symbol == "#ADD"):
+            pass
+        elif(action_symbol == "#MULT"):
+            pass
+        elif(action_symbol == "#ASSIGN"):
+            pass
+        elif(action_symbol == ""):
+            pass
+        elif(action_symbol == ""):
+            pass
+        elif(action_symbol == ""):
+            pass
+        elif(action_symbol == ""):
+            pass
+        elif(action_symbol == ""):
+            pass
+        else:
+            pass
 
-def pid(id):
-    #should id be the token for type mismatch checks etc
-    #get the address from the table and push that - how to do type checks 
-    # push token now and get addresses later when you generate the three address code - after type checking!
+    def pid(self):
+        #query current input from parser
+        id = getaddr()
+        #check that next input actuallly is a valid type for id?
+        self.ss.append(next_id)
 
-    ss.append()
+    def add(self):
+        first = self.ss.pop()
+        second = self.ss.pop()
+        # stack should not be empty
+        # check both types
+        # perform addition
+        # create token and push to stack
+        result = first + second
 
-def add():
-    first = ss.pop()
-    second = ss.pop()
-    #stack should not be empty
-    #check both types 
-    #perform addition
-    #create token and push to stack
-    result = first + second
-
-def mult():
-    pass
-
-def assign():
-    pass
-
-def jpf():
-    pass
-
-def jp():
-    pass
-
-def save():
-    pass
-
-def save_jpf():
-    pass
-
-
-
-def semantic_check(action):
-
-    if(action == "#PID"):
+    def assign(self):
         pass
-    elif(action == "#ADD"):
+
+    def jpf(self):
         pass
-    elif(action == "#MULT"):
+
+    def jp(self):
         pass
-    elif(action == "#ASSIGN"):
+
+    def save(self):
         pass
-    elif(action == ""):
+
+    def save_jpf(self):
         pass
-    elif(action == ""):
+
+    def get_three_adress(self):
+        # returns the three address code
         pass
-    elif(action == ""):
-        pass
-    elif(action == ""):
-        pass
-    elif(action == ""):
-        pass
-    else:
-        pass
-    

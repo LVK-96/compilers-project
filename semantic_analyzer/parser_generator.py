@@ -84,7 +84,7 @@ def make_follows(follows, productions, firsts):
     return follows
 
 
-def make_table(firsts, follows, productions):
+def make_table(firsts, follows, productions, productions_without_action_symbols):
     ll1_table = []
     terminals_with_eof = terminals + ["$"]
     for f in firsts:
@@ -92,17 +92,19 @@ def make_table(firsts, follows, productions):
         for t in terminals_with_eof:
             if t in firsts[f]:
                 correct_production = None
-                for p in productions[f]:
+                for p in productions_without_action_symbols[f]:
                     elems = p.split(" ")
                     if elems[0] == t:
-                        correct_production = p
+                        correct_production = productions[f][productions_without_action_symbols[f].index(
+                            p)]
                         break
 
                     i = 0
                     while i < len(elems):
                         if elems[i] in firsts:
                             if t in firsts[elems[i]]:
-                                correct_production = p
+                                correct_production = productions[f][productions_without_action_symbols[f].index(
+                                    p)]
                                 break
 
                             if "EPSILON" not in firsts[elems[i]]:
@@ -119,13 +121,15 @@ def make_table(firsts, follows, productions):
             for t in terminals_with_eof:
                 if t in follows[f]:
                     correct_production = None
-                    for p in productions[f]:
+                    for p in productions_without_action_symbols[f]:
                         elems = p.split(" ")
                         if elems[0] == "EPSILON":
-                            correct_production = p
+                            correct_production = productions[f][productions_without_action_symbols[f].index(
+                                p)]
                             break
                         elif elems[0] in firsts and "EPSILON" in firsts[elems[0]]:
-                            correct_production = p
+                            correct_production = productions[f][productions_without_action_symbols[f].index(
+                                p)]
                             break
 
                     line[terminals_with_eof.index(t)] = correct_production
@@ -155,7 +159,7 @@ def debug_print(firsts, follows, table):
         print(line)
 
 
-def main():
+def gen_table():
     with open("grammar.txt") as f:
         data = f.read()
         data = data.rstrip()
@@ -163,6 +167,7 @@ def main():
 
     data = data.split("\n")
     productions = {}
+    productions_without_action_symbols = {}
     first_calculated = {}
     firsts = {}
     follows = {}
@@ -178,11 +183,21 @@ def main():
         for r in rhs:
             productions[lhs].append(r)
 
-    firsts = make_firsts(productions, first_calculated, firsts)
-    follows = make_follows(follows, productions, firsts)
-    ll1_table = make_table(firsts, follows, productions)
+    for p in productions:
+        new_sub = []
+        for sub in productions[p]:
+            elems = [e for e in sub.split(" ") if not e.startswith("#")]
+            without_action_symbols = " ".join(elems)
+            new_sub.append(without_action_symbols)
+        productions_without_action_symbols[p] = new_sub
 
-    debug_print(firsts, follows, ll1_table)
+    firsts = make_firsts(productions_without_action_symbols,
+                         first_calculated, firsts)
+    follows = make_follows(follows, productions_without_action_symbols, firsts)
+    ll1_table = make_table(firsts, follows, productions,
+                           productions_without_action_symbols)
+
+    # debug_print(firsts, follows, ll1_table)
 
     with open('table.txt', 'w') as f:
         for line in ll1_table:
@@ -200,6 +215,8 @@ def main():
         f.write(json_string)
         f.close()
 
+    return ll1_table
+
 
 if __name__ == "__main__":
-    main()
+    gen_table()
