@@ -115,7 +115,7 @@ class SemanticAnalyzer:
 
         elif action_symbol == "#BREAK":
             if self.in_while == 0 and self.in_switch_case == 0:
-                msg = "No 'while' found for 'break'"
+                msg = "No 'while' or 'switch' found for 'break'"
                 self.report_error(lineno, msg)
 
         else:
