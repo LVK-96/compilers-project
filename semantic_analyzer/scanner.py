@@ -10,7 +10,9 @@ class Scanner:
         self.KEYWORD = keywords
         self.lineno = 1
         self.tokens = {}
-        self.symbol_table = self.KEYWORD.copy()
+        # reserve space for type identifier
+        self.symbol_table = dict.fromkeys(keywords, "-")
+        self.temp_type = "-"  # temporary variable to store type information
         self.errors = []
         self.data = data
 
@@ -250,8 +252,14 @@ class Scanner:
         self.tokens[self.lineno].append((token, substring))
 
     def handle_match(self, token, substring):
-        if token == "ID" and substring not in self.symbol_table:
-            self.symbol_table.append(substring)
+        if token == "ID" and substring not in self.symbol_table.keys():
+            # add new symbol and set type identifier
+            self.symbol_table[substring] = self.temp_type
+            self.temp_type = "-"
+        elif token == "KEYWORD" and (substring == "int" or substring == "void"):
+            self.temp_type = substring
+        else:
+            self.temp_type = "-"
 
         self.save_token(token, substring)
 
@@ -265,6 +273,13 @@ class Scanner:
             return (token, substring, self.lineno)
 
         return self.get_next_token()
+
+    def get_type(self, symbol):
+        if symbol in self.symbol_table.keys():
+            return self.symbol_table[symbol]
+        else:
+            # Error: symbol not in symbol table - how to handle?
+            return 0
 
     def write_tokens_to_file(self):
         with open("tokens.txt", "w") as f:
@@ -281,8 +296,8 @@ class Scanner:
 
     def write_symbol_table_to_file(self):
         with open("symbol_table.txt", "w") as f:
-            for i, symbol in enumerate(self.symbol_table):
-                f.write(f"{i + 1}. {symbol}\n")
+            for i, (symbol, typespec) in enumerate(self.symbol_table.items()):
+                f.write(f"{i + 1}. {symbol} {typespec}\n")
 
             f.close()
 

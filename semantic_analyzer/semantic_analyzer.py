@@ -4,7 +4,6 @@ Jaakko Koskela 526050
 """
 
 import weakref
-from parser import get_addr
 
 
 class SemanticAnalyzer:
@@ -16,7 +15,7 @@ class SemanticAnalyzer:
 
     def semantic_actions(self, action_symbol):
         if(action_symbol == "#PID"):
-            pass
+            self.pid()
         elif(action_symbol == "#ADD"):
             pass
         elif(action_symbol == "#MULT"):
@@ -40,9 +39,14 @@ class SemanticAnalyzer:
         # query current input from parser
         id = getaddr()
         # check that next input actuallly is a valid type for id?
+        self.parser.current_input = getaddr()
+        # check that variable declared - within scope
+        # get the type from symbol table
+        # check that next input actuallly is a valid type for id?
         self.ss.append(next_id)
 
     def add(self):
+        # can be num or id
         first = self.ss.pop()
         second = self.ss.pop()
         # stack should not be empty
@@ -66,6 +70,6 @@ class SemanticAnalyzer:
     def save_jpf(self):
         pass
 
-    def get_three_adress(self):
-        # returns the three address code
-        pass
+    # def get_three_adress(self):
+    #    # returns the three address code
+    #    pass

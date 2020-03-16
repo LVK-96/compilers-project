@@ -183,7 +183,6 @@ class LL1_parser:
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
-        self.symbol_table = keywords.copy()
         scanner = Scanner(filename, symbols, keywords, data)
         semantic_analyzer = SemanticAnalyzer(self)
         self.scanner = scanner
