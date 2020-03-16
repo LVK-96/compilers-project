@@ -11,7 +11,7 @@ class SemanticAnalyzer:
     def __init__(self, parser):
         self.parser = weakref.ref(parser)
         self.ss = 0
-        #self.i = 0  # index to address table
+        # self.i = 0  # index to address table
         #self.three_address_codes = []
 
     def semantic_actions(self, action_symbol):
@@ -37,9 +37,9 @@ class SemanticAnalyzer:
             pass
 
     def pid(self):
-        #query current input from parser
+        # query current input from parser
         id = getaddr()
-        #check that next input actuallly is a valid type for id?
+        # check that next input actuallly is a valid type for id?
         self.ss.append(next_id)
 
     def add(self):

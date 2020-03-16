@@ -377,9 +377,11 @@ class LL1_parser:
 
             f.close()
 
+
 def get_addr():
-    #placeholder for getting the current input token for semantic analysis
+    #  placeholder for getting the current input token for semantic analysis
     return ("ID", 1)
+
 
 def main(argv):
     filename = "input.txt"

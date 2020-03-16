@@ -84,7 +84,11 @@ def make_follows(follows, productions, firsts):
     return follows
 
 
-def make_table(firsts, follows, productions, productions_without_action_symbols):
+def make_table(
+        firsts,
+        follows,
+        productions,
+        productions_without_action_symbols):
     ll1_table = []
     terminals_with_eof = terminals + ["$"]
     for f in firsts:
