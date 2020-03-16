@@ -3,6 +3,15 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
+from enum import Enum
+
+
+class SymbolType(Enum):
+    KEYWORD = 1
+    FUNCTION = 2
+    INT = 3
+    VOID = 4
+
 
 class Scanner:
     def __init__(self, filename, symbols, keywords, data):
@@ -11,8 +20,7 @@ class Scanner:
         self.lineno = 1
         self.tokens = {}
         # reserve space for type identifier
-        self.symbol_table = dict.fromkeys(keywords, "-")
-        self.temp_type = "-"  # temporary variable to store type information
+        self.symbol_table = dict.fromkeys(keywords, SymbolType.KEYWORD)
         self.errors = []
         self.data = data
 
@@ -254,14 +262,8 @@ class Scanner:
     def handle_match(self, token, substring):
         if token == "ID" and substring not in self.symbol_table.keys():
             # add new symbol and set type identifier
-            self.symbol_table[substring] = self.temp_type
-            self.temp_type = "-"
-        elif token == "KEYWORD" and (substring == "int" or substring == "void"):
-            self.temp_type = substring
-        else:
-            self.temp_type = "-"
-
-        self.save_token(token, substring)
+            self.symbol_table[substring] = None
+            self.save_token(token, substring)
 
     def get_next_token(self):
         if not self.data:
