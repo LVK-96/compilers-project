@@ -3,6 +3,7 @@ leo kivikunnas 525925
 jaakko koskela 526050
 """
 import sys
+from collections import OrderedDict
 import parser_generator
 from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
@@ -183,7 +184,7 @@ class LL1_parser:
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
-        symbol_table = dict.fromkeys(keywords, SymbolType.KEYWORD)
+        symbol_table = OrderedDict.fromkeys(keywords, SymbolType.KEYWORD)
         scanner = Scanner(filename, symbols, symbol_table, keywords, data)
         semantic_analyzer = SemanticAnalyzer(symbol_table)
         self.scanner = scanner

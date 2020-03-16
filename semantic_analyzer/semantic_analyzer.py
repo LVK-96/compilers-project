@@ -25,6 +25,8 @@ class SemanticAnalyzer:
         elif(action_symbol == "#FUNCTION"):
             print(action_symbol)
             print(self.symbol_table)
+            # The last entry in the symbol table is a function
+            # update its type in the symbol table
         elif(action_symbol == ""):
             pass
         elif(action_symbol == ""):
