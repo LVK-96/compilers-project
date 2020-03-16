@@ -263,7 +263,7 @@ class Scanner:
     def handle_match(self, token, substring):
         if token == "ID" and substring not in self.symbol_table.keys():
             # add new symbol and set type identifier
-            self.symbol_table[substring] = None
+            self.symbol_table[substring] = {"type": None}
             self.save_token(token, substring)
 
     def get_next_token(self):
@@ -279,7 +279,7 @@ class Scanner:
 
     def get_type(self, symbol):
         if symbol in self.symbol_table.keys():
-            return self.symbol_table[symbol]
+            return self.symbol_table[symbol]["type"]
         else:
             # Error: symbol not in symbol table - how to handle?
             return 0
@@ -299,8 +299,8 @@ class Scanner:
 
     def write_symbol_table_to_file(self):
         with open("symbol_table.txt", "w") as f:
-            for i, (symbol, typespec) in enumerate(self.symbol_table.items()):
-                f.write(f"{i + 1}. {symbol} {typespec}\n")
+            for i, (key, item) in enumerate(self.symbol_table.items()):
+                f.write(f"{i + 1}. {key} {item['type']}\n")
 
             f.close()
 

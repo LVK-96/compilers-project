@@ -185,7 +185,10 @@ class LL1_parser:
         self.errors = []
         self.lineno = 1
         self.latest_type = None
-        symbol_table = OrderedDict.fromkeys(keywords, SymbolType.KEYWORD)
+        symbol_table = OrderedDict()
+        for keyword in keywords:
+            entry = {"type": SymbolType.KEYWORD}
+            symbol_table[keyword] = entry
         scanner = Scanner(filename, symbols, symbol_table, keywords, data)
         semantic_analyzer = SemanticAnalyzer(symbol_table)
         self.scanner = scanner

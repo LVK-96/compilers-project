@@ -28,14 +28,14 @@ class SemanticAnalyzer:
         elif(action_symbol == "#FUNCTION"):
             head = self.get_symbol_table_head()
             if latest_type == "void":
-                self.symbol_table[head[0]] = SymbolType.FUNCTION_VOID
+                self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_VOID
             elif latest_type == "int":
-                self.symbol_table[head[0]] = SymbolType.FUNCTION_INT
+                self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_INT
         elif(action_symbol == "#END"):
             # Each program must have a main function
             main_found = False
-            for key, type in self.symbol_table.items():
-                if key == "main" and type == SymbolType.FUNCTION_VOID:
+            for key, item in self.symbol_table.items():
+                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID:
                     main_found = True
                     break
 
