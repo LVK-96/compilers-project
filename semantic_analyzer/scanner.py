@@ -14,13 +14,13 @@ class SymbolType(Enum):
 
 
 class Scanner:
-    def __init__(self, filename, symbols, keywords, data):
+    def __init__(self, filename, symbols, symbol_table, keywords, data):
         self.SYMBOL = symbols
         self.KEYWORD = keywords
         self.lineno = 1
         self.tokens = {}
         # reserve space for type identifier
-        self.symbol_table = dict.fromkeys(keywords, SymbolType.KEYWORD)
+        self.symbol_table = symbol_table
         self.errors = []
         self.data = data
 

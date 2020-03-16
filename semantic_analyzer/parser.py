@@ -4,7 +4,7 @@ jaakko koskela 526050
 """
 import sys
 import parser_generator
-from scanner import Scanner
+from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
 from anytree import Node, RenderTree
 
@@ -183,8 +183,9 @@ class LL1_parser:
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
-        scanner = Scanner(filename, symbols, keywords, data)
-        semantic_analyzer = SemanticAnalyzer(self)
+        symbol_table = dict.fromkeys(keywords, SymbolType.KEYWORD)
+        scanner = Scanner(filename, symbols, symbol_table, keywords, data)
+        semantic_analyzer = SemanticAnalyzer(symbol_table)
         self.scanner = scanner
         self.semantic_analyzer = semantic_analyzer
         self.input_ptr = self.scanner.get_next_token()

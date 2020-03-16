@@ -7,8 +7,8 @@ import weakref
 
 
 class SemanticAnalyzer:
-    def __init__(self, parser):
-        self.parser = weakref.ref(parser)
+    def __init__(self, symbol_table):
+        self.symbol_table = symbol_table
         self.ss = 0
         # self.i = 0  # index to address table
         #self.three_address_codes = []
@@ -22,8 +22,9 @@ class SemanticAnalyzer:
             pass
         elif(action_symbol == "#ASSIGN"):
             pass
-        elif(action_symbol == ""):
-            pass
+        elif(action_symbol == "#FUNCTION"):
+            print(action_symbol)
+            print(self.symbol_table)
         elif(action_symbol == ""):
             pass
         elif(action_symbol == ""):

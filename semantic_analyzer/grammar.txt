@@ -2,7 +2,7 @@ Program -> Declaration-list
 Declaration-list -> Declaration Declaration-list | EPSILON
 Declaration -> Declaration-initial Declaration-prime
 Declaration-initial -> Type-specifier ID
-Declaration-prime -> Fun-declaration-prime | Var-declaration-prime
+Declaration-prime -> #FUNCTION Fun-declaration-prime | Var-declaration-prime
 Var-declaration-prime -> ; | [ NUM ] ;
 Fun-declaration-prime -> ( Params ) Compound-stmt
 Type-specifier -> int | void
