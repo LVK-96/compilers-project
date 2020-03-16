@@ -10,8 +10,9 @@ class SemanticAnalyzer:
     def __init__(self, symbol_table):
         self.symbol_table = symbol_table
         self.ss = 0
-        # self.i = 0  # index to address table
-        # self.three_address_codes = []
+        # Count number of params for functions
+        self.param_counter_active = False
+        self.param_counter = []
 
     def get_symbol_table_head(self):
         return list(self.symbol_table.items())[-1]
@@ -31,16 +32,39 @@ class SemanticAnalyzer:
                 self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_VOID
             elif latest_type == "int":
                 self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_INT
+
         elif(action_symbol == "#END"):
             # Each program must have a main function
             main_found = False
             for key, item in self.symbol_table.items():
-                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID:
+                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID and item["params"] == [
+                        "void"]:
                     main_found = True
                     break
 
             if not main_found:
                 print("Error: void main function not found")
+
+        elif(action_symbol == "#START_PARAM_COUNTER"):
+            self.param_counter_active = True
+            self.param_counter = []
+
+        elif(action_symbol == "#STOP_PARAM_COUNTER"):
+            latest_func = None
+            for key, item in self.symbol_table.items():
+                if item["type"] in [
+                        SymbolType.FUNCTION_VOID,
+                        SymbolType.FUNCTION_INT]:
+                    latest_func = key
+
+            if latest_func:
+                self.symbol_table[latest_func]["params"] = self.param_counter
+
+            self.param_counter_active = False
+
+        elif(action_symbol == "#PARAM"):
+            if self.param_counter_active:
+                self.param_counter.append(latest_type)
 
         elif(action_symbol == ""):
             pass

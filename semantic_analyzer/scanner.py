@@ -300,7 +300,7 @@ class Scanner:
     def write_symbol_table_to_file(self):
         with open("symbol_table.txt", "w") as f:
             for i, (key, item) in enumerate(self.symbol_table.items()):
-                f.write(f"{i + 1}. {key} {item['type']}\n")
+                f.write(f"{i + 1}. {key} {item}\n")
 
             f.close()
 
