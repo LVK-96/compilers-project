@@ -18,7 +18,7 @@ class SemanticAnalyzer:
 
     def semantic_actions(self, action_symbol, latest_type):
         if(action_symbol == "#PID"):
-            self.pid()
+            self.pid(latest_type)
         elif(action_symbol == "#ADD"):
             pass
         elif(action_symbol == "#MULT"):
@@ -26,6 +26,7 @@ class SemanticAnalyzer:
         elif(action_symbol == "#ASSIGN"):
             pass
         elif(action_symbol == "#FUNCTION"):
+            #update scope stack 
             head = self.get_symbol_table_head()
             if latest_type == "void":
                 self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_VOID
@@ -35,14 +36,16 @@ class SemanticAnalyzer:
             # Each program must have a main function
             main_found = False
             for key, item in self.symbol_table.items():
-                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID:
+                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID: #does it have to be void?
                     main_found = True
                     break
 
             if not main_found:
                 print("Error: void main function not found")
 
-        elif(action_symbol == ""):
+        elif(action_symbol == "#ENDFUNCTION"):
+            #remove variables from symbol table and pop scope stack
+            #Is a generalized action symbol possible eg. #ENDSCOPE 
             pass
         elif(action_symbol == ""):
             pass
@@ -53,15 +56,29 @@ class SemanticAnalyzer:
         else:
             pass
 
-    def pid(self):
-        # query current input from parser
-        id = getaddr()
-        # check that next input actuallly is a valid type for id?
-        self.parser.current_input = getaddr()
-        # check that variable declared - within scope
-        # get the type from symbol table
-        # check that next input actuallly is a valid type for id?
-        self.ss.append(next_id)
+    #this is only for ID declarations - no assignment - no push to semantic stack?
+    def pid(self, latest_type):
+        #update type to symbol table
+        head = self.get_symbol_table_head() #the id latest type refers to is the latest addition to symbol table
+        if latest_type == "void":
+            self.symbol_table[head[0]]["type"] = SymbolType.VOID #okay for functions, but not for other ID:s
+        elif latest_type == "int":
+            self.symbol_table[head[0]]["type"] = SymbolType.INT
+        else:
+            #error invalid type for 
+            print("Error: Invalid type for ID")
+
+    #checks for declarations and scopes
+    def rid(self):
+        #check that in symbol table
+        #check that type is correct
+        #check that in scope
+        pass
+
+
+    def assign(self):
+        #what we assign to must be ID and it must have been defined
+        #exmpale a = 3; - case for num - a needs to be defined - id with out definition -> check that it is defined 
 
     def add(self):
         # can be num or id
@@ -73,8 +90,7 @@ class SemanticAnalyzer:
         # create token and push to stack
         result = first + second
 
-    def assign(self):
-        pass
+
 
     def jpf(self):
         pass
