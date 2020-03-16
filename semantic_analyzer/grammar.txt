@@ -23,7 +23,7 @@ Switch-stmt -> switch ( Expression ) { Case-stmts Default-stmt }
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
-Expression -> Simple-expression-zegond | ID B
+Expression -> Simple-expression-zegond | #START_ARGUMENT_COUNTER ID B
 B -> = Expression | [ Expression ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
@@ -40,10 +40,10 @@ Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
 Factor -> ( Expression ) | ID Var-call-prime | NUM
-Var-call-prime -> ( Args ) | Var-prime
+Var-call-prime -> ( Args #STOP_ARGUMENT_COUNTER ) | Var-prime
 Var-prime -> [ Expression ] | EPSILON
-Factor-prime -> ( Args ) | EPSILON
+Factor-prime -> ( Args #STOP_ARGUMENT_COUNTER ) | EPSILON
 Factor-zegond -> ( Expression ) | NUM
 Args -> Arg-list | EPSILON
-Arg-list -> Expression Arg-list-prime
-Arg-list-prime -> , Expression Arg-list-prime | EPSILON
+Arg-list -> #ARGUMENT Expression Arg-list-prime
+Arg-list-prime -> , #ARGUMENT Expression Arg-list-prime | EPSILON

@@ -10,15 +10,22 @@ class SemanticAnalyzer:
     def __init__(self, symbol_table):
         self.symbol_table = symbol_table
         self.ss = 0
-        # Count number of params for functions
-        self.param_counter_active = False
+        # Count params for functions in definitions
         self.param_counter = []
+        # Track function calls and arguments given to functions
+        # Append new function and
+        # new list of arguments when #START_ARGUMENT_COUNTER is ran
+        # and input ptr points to function name
+        # Head is the active function
+        # Pop head in #STOP_ARGUMENT_COUNTER
+        self.function_call_stack = []
+        self.argument_counter = []
         self.errors = []
 
     def get_symbol_table_head(self):
         return list(self.symbol_table.items())[-1]
 
-    def semantic_actions(self, action_symbol, latest_type, lineno):
+    def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if(action_symbol == "#PID"):
             self.pid()
         elif(action_symbol == "#ADD"):
@@ -27,6 +34,7 @@ class SemanticAnalyzer:
             pass
         elif(action_symbol == "#ASSIGN"):
             pass
+
         elif(action_symbol == "#FUNCTION"):
             head = self.get_symbol_table_head()
             if latest_type == "void":
@@ -47,7 +55,6 @@ class SemanticAnalyzer:
                 self.report_error(lineno, "main function not found")
 
         elif(action_symbol == "#START_PARAM_COUNTER"):
-            self.param_counter_active = True
             self.param_counter = []
 
         elif(action_symbol == "#STOP_PARAM_COUNTER"):
@@ -61,20 +68,28 @@ class SemanticAnalyzer:
             if latest_func:
                 self.symbol_table[latest_func]["params"] = self.param_counter
 
-            self.param_counter_active = False
-
         elif(action_symbol == "#PARAM"):
-            if self.param_counter_active:
-                self.param_counter.append(latest_type)
+            self.param_counter.append(latest_type)
 
-        elif(action_symbol == ""):
-            pass
-        elif(action_symbol == ""):
-            pass
-        elif(action_symbol == ""):
-            pass
-        elif(action_symbol == ""):
-            pass
+        elif(action_symbol == "#START_ARGUMENT_COUNTER"):
+            if self.symbol_table[input_ptr[1]]["type"] in [
+                    SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
+                self.function_call_stack.append(input_ptr[1])
+                self.argument_counter.append([])
+
+        elif(action_symbol == "#STOP_ARGUMENT_COUNTER"):
+            func_name = self.function_call_stack.pop() if len(
+                self.function_call_stack) > 0 else None
+            given_args = self.argument_counter.pop() if len(
+                self.argument_counter) > 0 else None
+            if (len(self.symbol_table[func_name]
+                    ["params"]) != len(given_args)):
+                self.report_error(
+                    lineno, f"Missmatch in number of arguments of '{func_name}'")
+
+        elif(action_symbol == "#ARGUMENT"):
+            self.argument_counter[-1].append(input_ptr)
+
         else:
             pass
 
