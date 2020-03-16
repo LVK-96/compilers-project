@@ -13,11 +13,12 @@ class SemanticAnalyzer:
         # Count number of params for functions
         self.param_counter_active = False
         self.param_counter = []
+        self.errors = []
 
     def get_symbol_table_head(self):
         return list(self.symbol_table.items())[-1]
 
-    def semantic_actions(self, action_symbol, latest_type):
+    def semantic_actions(self, action_symbol, latest_type, lineno):
         if(action_symbol == "#PID"):
             self.pid()
         elif(action_symbol == "#ADD"):
@@ -43,7 +44,7 @@ class SemanticAnalyzer:
                     break
 
             if not main_found:
-                print("Error: void main function not found")
+                self.report_error(lineno, "main function not found")
 
         elif(action_symbol == "#START_PARAM_COUNTER"):
             self.param_counter_active = True
@@ -76,6 +77,20 @@ class SemanticAnalyzer:
             pass
         else:
             pass
+
+    def report_error(self, lineno, msg):
+        error_msg = f"#{lineno} : Semantic Error! {msg}"
+        self.errors.append(error_msg)
+
+    def write_errors_to_file(self):
+        with open("semantic_errors.txt", "w") as f:
+            if len(self.errors) > 0:
+                for i, error in enumerate(self.errors):
+                    f.write(f"{error}\n")
+            else:
+                f.write("There is no semantic errors.")
+
+            f.close()
 
     def pid(self):
         # query current input from parser

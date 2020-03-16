@@ -304,7 +304,8 @@ class LL1_parser:
             to_compare = 0
 
         if head.startswith("#"):
-            self.semantic_analyzer.semantic_actions(head, self.latest_type)
+            self.semantic_analyzer.semantic_actions(
+                head, self.latest_type, self.lineno)
             self.stack.pop()
 
         elif self.input_ptr[to_compare] == head:
@@ -415,6 +416,7 @@ def main(argv):
     parser.scanner.write_tokens_to_file()
     parser.scanner.write_symbol_table_to_file()
     parser.scanner.write_errors_to_file()
+    parser.semantic_analyzer.write_errors_to_file()
 
 
 if __name__ == "__main__":
