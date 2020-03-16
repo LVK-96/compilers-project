@@ -184,6 +184,7 @@ class LL1_parser:
         self.current_node = self.tree
         self.errors = []
         self.lineno = 1
+        self.latest_type = None
         symbol_table = OrderedDict.fromkeys(keywords, SymbolType.KEYWORD)
         scanner = Scanner(filename, symbols, symbol_table, keywords, data)
         semantic_analyzer = SemanticAnalyzer(symbol_table)
@@ -300,10 +301,12 @@ class LL1_parser:
             to_compare = 0
 
         if head.startswith("#"):
-            self.semantic_analyzer.semantic_actions(head)
+            self.semantic_analyzer.semantic_actions(head, self.latest_type)
             self.stack.pop()
 
         elif self.input_ptr[to_compare] == head:
+            if self.input_ptr[to_compare] == "void" or self.input_ptr[to_compare] == "int":
+                self.latest_type = self.input_ptr[to_compare]
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)

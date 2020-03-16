@@ -3,7 +3,7 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-import weakref
+from scanner import SymbolType
 
 
 class SemanticAnalyzer:
@@ -11,9 +11,12 @@ class SemanticAnalyzer:
         self.symbol_table = symbol_table
         self.ss = 0
         # self.i = 0  # index to address table
-        #self.three_address_codes = []
+        # self.three_address_codes = []
 
-    def semantic_actions(self, action_symbol):
+    def get_symbol_table_head(self):
+        return list(self.symbol_table.items())[-1]
+
+    def semantic_actions(self, action_symbol, latest_type):
         if(action_symbol == "#PID"):
             self.pid()
         elif(action_symbol == "#ADD"):
@@ -23,10 +26,22 @@ class SemanticAnalyzer:
         elif(action_symbol == "#ASSIGN"):
             pass
         elif(action_symbol == "#FUNCTION"):
-            print(action_symbol)
-            print(self.symbol_table)
-            # The last entry in the symbol table is a function
-            # update its type in the symbol table
+            head = self.get_symbol_table_head()
+            if latest_type == "void":
+                self.symbol_table[head[0]] = SymbolType.FUNCTION_VOID
+            elif latest_type == "int":
+                self.symbol_table[head[0]] = SymbolType.FUNCTION_INT
+        elif(action_symbol == "#END"):
+            # Each program must have a main function
+            main_found = False
+            for key, type in self.symbol_table.items():
+                if key == "main" and type == SymbolType.FUNCTION_VOID:
+                    main_found = True
+                    break
+
+            if not main_found:
+                print("Error: void main function not found")
+
         elif(action_symbol == ""):
             pass
         elif(action_symbol == ""):

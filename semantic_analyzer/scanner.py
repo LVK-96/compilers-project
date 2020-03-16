@@ -8,9 +8,10 @@ from enum import Enum
 
 class SymbolType(Enum):
     KEYWORD = 1
-    FUNCTION = 2
-    INT = 3
-    VOID = 4
+    FUNCTION_INT = 2
+    FUNCTION_VOID = 3
+    INT = 4
+    VOID = 5
 
 
 class Scanner:
