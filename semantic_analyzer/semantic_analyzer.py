@@ -24,6 +24,9 @@ class SemanticAnalyzer:
         # Are we in a while loop
         # Integer represents number of nested loops
         self.in_while = 0
+        # Are we in a switch case
+        # Integer represents number of nested switch case statements
+        self.in_switch_case = 0
 
     def get_symbol_table_head(self):
         return list(self.symbol_table.items())[-1]
@@ -99,10 +102,20 @@ class SemanticAnalyzer:
         elif action_symbol == "#EXIT_WHILE":
             self.in_while = max(0, self.in_while - 1)
 
+        elif action_symbol == "#SWITCH_CASE":
+            self.in_switch_case += 1
+
+        elif action_symbol == "#EXIT_SWITCH_CASE":
+            self.in_switch_case = max(0, self.in_while - 1)
+
         elif action_symbol == "#CONTINUE":
-            print(self.in_while)
             if self.in_while == 0:
                 msg = "No 'while' found for 'continue'"
+                self.report_error(lineno, msg)
+
+        elif action_symbol == "#BREAK":
+            if self.in_while == 0 and self.in_switch_case == 0:
+                msg = "No 'while' found for 'break'"
                 self.report_error(lineno, msg)
 
         else:
