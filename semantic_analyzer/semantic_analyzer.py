@@ -92,15 +92,24 @@ class SemanticAnalyzer:
 
             f.close()
 
-    def pid(self):
-        # query current input from parser
-        id = getaddr()
-        # check that next input actuallly is a valid type for id?
-        self.parser.current_input = getaddr()
-        # check that variable declared - within scope
-        # get the type from symbol table
-        # check that next input actuallly is a valid type for id?
-        self.ss.append(next_id)
+    #this is only for ID declarations - no assignment - no push to semantic stack?
+    def pid(self, latest_type):
+        #update type to symbol table
+        head = self.get_symbol_table_head() #the id latest type refers to is the latest addition to symbol table
+        if latest_type == "void":
+            self.symbol_table[head[0]]["type"] = SymbolType.VOID #okay for functions, but not for other ID:s
+        elif latest_type == "int":
+            self.symbol_table[head[0]]["type"] = SymbolType.INT
+        else:
+            #error invalid type for 
+            print("Error: Invalid type for ID")
+
+    #checks for declarations and scopes
+    def rid(self):
+        #check that in symbol table
+        #check that type is correct
+        #check that in scope
+        pass
 
     def add(self):
         # can be num or id
