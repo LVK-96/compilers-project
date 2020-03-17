@@ -201,10 +201,7 @@ class SemanticAnalyzer:
             elif (symbol["type"] == SymbolType.VOID):
                 self.report_error(lineno, f"Illegal type of void for {current}")
                 #remove from symbol table
-                print(self.symbol_table)
-                print("remove void declaration from symbol table")
-                #del self.symbol_table[self.get_index(current)]
-                print(self.symbol_table)
+                del self.symbol_table[self.get_index(current)]
             else:
                 #Variable not declared or not in scope - already reported by #pid
                 #remove from symbol table?
@@ -212,8 +209,7 @@ class SemanticAnalyzer:
 
         except KeyError:
             #Variable not declared or not in scope - should never happen
-            self.report_error(lineno, f"{current} is not defined")
-    
+            self.report_error(lineno, f"{current} is not defined")    
 
     #Mark symbol as a function
     def function(self, lineno):
@@ -237,8 +233,6 @@ class SemanticAnalyzer:
 
     #Declare ID types and check scopes
     def pid(self, input_ptr, latest_type, lineno):
-        #print("latest type: ", latest_type)
-        #print(self.symbol_table)
         current = input_ptr[1]
         try:
             symbol = self.symbol_table[self.get_index(current)]
@@ -247,14 +241,11 @@ class SemanticAnalyzer:
                 if latest_type == SymbolType.INT:
                     self.symbol_table[self.get_index(current)]["type"] = SymbolType.INT
                 elif latest_type == SymbolType.VOID:
-                    print("wrong place")
                     self.symbol_table[self.get_index(current)]["type"] = SymbolType.VOID
                 else:
-                    print("correct place")
                     #Not declaring, but referencing
                     #scanner still adds a new symbol to the table - remove it
                     del self.symbol_table[self.get_index(current)]
-                    #print(self.symbol_table)
                     try:
                         symbol = self.symbol_table[self.get_index(current)]
                         if(symbol["type"] == SymbolType.INT):
