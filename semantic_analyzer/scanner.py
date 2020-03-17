@@ -277,12 +277,12 @@ class Scanner:
 
         return self.get_next_token()
 
-    def get_type(self, symbol):
-        if symbol in self.symbol_table.keys():
-            return self.symbol_table[symbol]["type"]
-        else:
-            # Error: symbol not in symbol table - how to handle?
-            return 0
+    #def get_type(self, symbol):
+    #    if symbol in self.symbol_table.keys():
+    #        return self.symbol_table[symbol]["type"]
+    #    else:
+    #        # Error: symbol not in symbol table - how to handle?
+    #        return 0
 
     def write_tokens_to_file(self):
         with open("tokens.txt", "w") as f:

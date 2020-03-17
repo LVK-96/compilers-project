@@ -1,10 +1,10 @@
 Program -> Declaration-list #END
 Declaration-list -> Declaration Declaration-list | EPSILON
 Declaration -> Declaration-initial Declaration-prime
-Declaration-initial -> Type-specifier ID
-Declaration-prime -> #FUNCTION Fun-declaration-prime | Var-declaration-prime
+Declaration-initial -> Type-specifier #PID ID
+Declaration-prime -> #FUNCTION Fun-declaration-prime | #VARIABLE Var-declaration-prime
 Var-declaration-prime -> ; | [ NUM ] ;
-Fun-declaration-prime -> ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt
+Fun-declaration-prime -> #BEGINSCOPE ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt #ENDSCOPE
 Type-specifier -> int | void
 Params -> int ID #PARAM Param-prime Param-list | void #PARAM Param-list-void-abtar
 Param-list-void-abtar -> ID Param-prime Param-list | EPSILON
@@ -13,7 +13,7 @@ Param -> Declaration-initial #PARAM Param-prime
 Param-prime -> [ ] | EPSILON
 Compound-stmt -> { Declaration-list Statement-list }
 Statement-list -> Statement Statement-list | EPSILON
-Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
+Statement -> Expression-stmt | #BEGINSCOPE Compound-stmt #ENDSCOPE | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
 Expression-stmt -> Expression ; | continue ; | break ; | ;
 Selection-stmt -> if ( Expression ) Statement else Statement
 Iteration-stmt -> while ( Expression ) Statement
@@ -23,7 +23,7 @@ Switch-stmt -> switch ( Expression ) { Case-stmts Default-stmt }
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
-Expression -> Simple-expression-zegond | ID B
+Expression -> Simple-expression-zegond | #PID ID B
 B -> = Expression | [ Expression ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
@@ -39,7 +39,7 @@ Term -> Factor G
 Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
-Factor -> ( Expression ) | ID Var-call-prime | NUM
+Factor -> ( Expression ) | #PID ID Var-call-prime | NUM
 Var-call-prime -> ( Args ) | Var-prime
 Var-prime -> [ Expression ] | EPSILON
 Factor-prime -> ( Args ) | EPSILON

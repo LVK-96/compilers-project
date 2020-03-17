@@ -305,12 +305,14 @@ class LL1_parser:
 
         if head.startswith("#"):
             self.semantic_analyzer.semantic_actions(
-                head, self.latest_type, self.lineno)
+                head, self.input_ptr, self.latest_type, self.lineno)
             self.stack.pop()
 
         elif self.input_ptr[to_compare] == head:
             if self.input_ptr[to_compare] == "void" or self.input_ptr[to_compare] == "int":
                 self.latest_type = self.input_ptr[to_compare]
+            else:
+                self.latest_type = "" #reset the latest type
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
