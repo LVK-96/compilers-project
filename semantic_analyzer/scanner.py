@@ -261,9 +261,9 @@ class Scanner:
         self.tokens[self.lineno].append((token, substring))
 
     def handle_match(self, token, substring):
-        if token == "ID" and substring not in self.symbol_table.keys():
+        if token == "ID":
             # add new symbol and set type identifier
-            self.symbol_table[substring] = {"type": None}
+            self.symbol_table.append({"name": substring, "type": None})
             self.save_token(token, substring)
 
     def get_next_token(self):
@@ -276,13 +276,6 @@ class Scanner:
             return (token, substring, self.lineno)
 
         return self.get_next_token()
-
-    #def get_type(self, symbol):
-    #    if symbol in self.symbol_table.keys():
-    #        return self.symbol_table[symbol]["type"]
-    #    else:
-    #        # Error: symbol not in symbol table - how to handle?
-    #        return 0
 
     def write_tokens_to_file(self):
         with open("tokens.txt", "w") as f:
@@ -299,8 +292,10 @@ class Scanner:
 
     def write_symbol_table_to_file(self):
         with open("symbol_table.txt", "w") as f:
-            for i, (key, item) in enumerate(self.symbol_table.items()):
-                f.write(f"{i + 1}. {key} {item}\n")
+            for i, item in enumerate(self.symbol_table):
+                name = item["name"]
+                typeof = item["type"]
+                f.write(f"{i + 1}. {name} {typeof}\n")
 
             f.close()
 

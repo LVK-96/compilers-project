@@ -16,8 +16,13 @@ class SemanticAnalyzer:
         self.errors = []
         self.scope_stack = []
 
+    def get_index(self, name):
+        for i in reversed(range(len(self.symbol_table))):
+            if self.symbol_table[i]["name"] == name:
+                return i
+
     def get_symbol_table_head(self):
-        return list(self.symbol_table.items())[-1]
+        return self.symbol_table[-1]
 
     def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if(action_symbol == "#PID"):
@@ -31,22 +36,22 @@ class SemanticAnalyzer:
 
         elif(action_symbol == "#BEGINSCOPE"):
             #Add function ID to scope stack
-            next_index = len(list(self.symbol_table.keys())) #next index - index starts from zero
+            next_index = len(self.symbol_table) #next index - index starts from zero
             self.scope_stack.append(next_index)
 
         elif(action_symbol == "#ENDSCOPE"):
             scope_begin = self.scope_stack.pop()
-            to_be_removed = list(self.symbol_table.keys())[scope_begin:]
+            to_be_removed = self.symbol_table[scope_begin:]
             #remove symbols from symbol table until we reach the beginning of the scope
             for key in to_be_removed:
-                del self.symbol_table[key]
+                self.symbol_table.pop()
             
 
         elif(action_symbol == "#END"):
             # Each program must have a main function
             main_found = False
-            for key, item in self.symbol_table.items():
-                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID and item["params"] == [
+            for item in self.symbol_table:
+                if item["name"] == "main" and item["type"] == SymbolType.FUNCTION_VOID and item["params"] == [
                         "void"]:
                     main_found = True
                     break
@@ -60,14 +65,14 @@ class SemanticAnalyzer:
 
         elif(action_symbol == "#STOP_PARAM_COUNTER"):
             latest_func = None
-            for key, item in self.symbol_table.items():
+            for item in self.symbol_table:
                 if item["type"] in [
                         SymbolType.FUNCTION_VOID,
                         SymbolType.FUNCTION_INT]:
-                    latest_func = key
+                    latest_func = item["name"]
 
             if latest_func:
-                self.symbol_table[latest_func]["params"] = self.param_counter
+                self.symbol_table[self.get_index(latest_func)]["params"] = self.param_counter
 
             self.param_counter_active = False
 
@@ -104,16 +109,16 @@ class SemanticAnalyzer:
     #Check that variable type not void
     def variable(self, lineno):
         #input pointer not in id anymore, but it is the most recent addition to symbol table
-        current = self.get_symbol_table_head()[0]
+        current = self.get_symbol_table_head()["name"]
         try:
-            symbol = self.symbol_table[current]
+            symbol = self.symbol_table[self.get_index(current)]
             if (symbol["type"] == SymbolType.INT):
                 #okay
                 pass
             elif (symbol["type"] == SymbolType.VOID):
                 self.report_error(lineno, f"Illegal type of void for {current}")
                 #remove from symbol table
-                #del self.symbol_table[current] - 
+                #del self.symbol_table[self.get_index(current)] - 
             else:
                 #Variable not declared or not in scope - already reported by #pid
                 #remove from symbol table?
@@ -127,13 +132,13 @@ class SemanticAnalyzer:
     #Mark symbol as a function
     def function(self, lineno):
         #input pointer not in id anymore, but it is the most recent addition to symbol table
-        current = self.get_symbol_table_head()[0]
+        current = self.get_symbol_table_head()["name"]
         try:
-            symbol = self.symbol_table[current]
+            symbol = self.symbol_table[self.get_index(current)]
             if (symbol["type"] == SymbolType.INT):
-                self.symbol_table[current]["type"] = SymbolType.FUNCTION_INT
+                self.symbol_table[self.get_index(current)]["type"] = SymbolType.FUNCTION_INT
             elif (symbol["type"] == SymbolType.VOID):
-                self.symbol_table[current]["type"] = SymbolType.FUNCTION_VOID
+                self.symbol_table[self.get_index(current)]["type"] = SymbolType.FUNCTION_VOID
             else:
                 #function return type not declared properly - already reported by pid
                 #remove from symbol table
@@ -148,32 +153,36 @@ class SemanticAnalyzer:
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
         try:
-            symbol = self.symbol_table[current]
+            symbol = self.symbol_table[self.get_index(current)]
+            #print(symbol)
             if(symbol["type"] == None):
                 #ID is being declared
                 if latest_type == "int":
-                    self.symbol_table[current]["type"] = SymbolType.INT
+                    self.symbol_table[self.get_index(current)]["type"] = SymbolType.INT
                 elif latest_type == "void":
-                    self.symbol_table[current]["type"] = SymbolType.VOID
+                    self.symbol_table[self.get_index(current)]["type"] = SymbolType.VOID
                 else:
-                    #ID not declared or not in scope
-                    self.report_error(lineno, f"{current}  is not defined")
-                    #scanner still adds it to symbol table - remove it
-                    del self.symbol_table[current]
+                    #Not declaring, but referencing
+                    #scanner still adds a new symbol to the table - remove it
+                    del self.symbol_table[self.get_index(current)]
+                    try:
+                        symbol = self.symbol_table[self.get_index(current)]
+                        if(symbol["type"] == SymbolType.INT):
+                            #ID declared and in scope
+                            pass
+                        elif(symbol["type"] == SymbolType.FUNCTION_INT):
+                            #ID declared and in scope
+                            pass
+                        elif(symbol["type"] == SymbolType.FUNCTION_VOID):
+                            #ID declared and in scope
+                            pass
+                        else:
+                            #Invalid type for ID
+                            pass
+                    except TypeError:
+                         #ID not declared or not in scope
+                        self.report_error(lineno, f"{current}  is not defined")
 
-            elif(symbol["type"] == SymbolType.INT):
-                #ID declared and in scope
-                pass
-            elif(symbol["type"] == SymbolType.FUNCTION_INT):
-                #ID declared and in scope
-                pass
-            elif(symbol["type"] == SymbolType.FUNCTION_VOID):
-                #ID declared and in scope
-                pass
-            else:
-                #Invalid type for ID
-                pass
-
-        except KeyError:
+        except TypeError:
             #ID not declared or not in scope - this should never be reached
             self.report_error(lineno, f"{current} is not defined")
