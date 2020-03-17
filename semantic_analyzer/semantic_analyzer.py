@@ -12,6 +12,7 @@ class SemanticAnalyzer:
         self.ss = 0
         # Count params for functions in definitions
         self.param_counter = []
+
         # Track function calls and arguments given to functions
         # Append new function and
         # new list of arguments when #START_ARGUMENT_COUNTER is ran
@@ -21,15 +22,20 @@ class SemanticAnalyzer:
         self.function_call_stack = []
         self.argument_counter = []
         self.errors = []
+
+        # Store type to check
         # Are we in a while loop
         # Integer represents number of nested loops
         self.in_while = 0
+
         # Are we in a switch case
         # Integer represents number of nested switch case statements
         self.in_switch_case = 0
 
+        self.type_check_active = False
+        self.type_to_check = None
+
     def compare_types(self, a, b):
-        print(a, b)
         if a == b:
             return True
         elif (
@@ -116,8 +122,9 @@ class SemanticAnalyzer:
             actual_type = self.symbol_table[arg[1]]["type"]
             if not self.compare_types(expected_type, actual_type):
                 msg = (
-                    f"Mismatch in type of argument {i + 1} for {func_name}."
-                    f"Expected {expected_type} but got {actual_type} instead'"
+                    f"Mismatch in type of argument {i + 1} for {func_name}. "
+                    f"Expected '{expected_type}' but "
+                    f"got '{actual_type}' instead'"
                 )
                 self.report_error(lineno, msg)
 
@@ -145,6 +152,36 @@ class SemanticAnalyzer:
         if self.in_while == 0 and self.in_switch_case == 0:
             msg = "No 'while' or 'switch' found for 'break'"
             self.report_error(lineno, msg)
+
+    def start_type_check(self, input_ptr):
+        self.type_to_check = self.symbol_table[input_ptr[1]]["type"]
+        self.type_check_active = True
+
+    def cancel_type_check(self):
+        self.type_to_check = None
+        self.type_check_active = False
+
+    def type_check(self, lineno, input_ptr):
+        if self.type_check_active:
+            input_type = None
+            if input_ptr[0] == "ID":
+                input_type = self.symbol_table[input_ptr[1]]["type"]
+            elif input_ptr[0] == "NUM":
+                input_type = SymbolType.INT
+
+            if not self.compare_types(self.type_to_check, input_type):
+                if input_type in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
+                    input_type = (
+                        SymbolType.INT if input_type == SymbolType.FUNCTION_INT
+                        else SymbolType.VOID
+                    )
+                msg = (
+                    f"Type mismatch in operands, Got '{input_type}' "
+                    f"instead of '{self.type_to_check}'"
+                )
+                self.report_error(lineno, msg)
+
+            self.cancel_type_check()
 
     def pid(self):
         # query current input from parser
@@ -218,6 +255,12 @@ class SemanticAnalyzer:
             self.cont(lineno)
         elif action_symbol == "#BREAK":
             self.brk(lineno)
+        elif action_symbol == "#START_TYPE_CHECK":
+            self.start_type_check(input_ptr)
+        elif action_symbol == "#CANCEL_TYPE_CHECK":
+            self.cancel_type_check()
+        elif action_symbol == "#TYPE_CHECK":
+            self.type_check(lineno, input_ptr)
         else:
             pass
 
