@@ -28,6 +28,23 @@ class SemanticAnalyzer:
         # Integer represents number of nested switch case statements
         self.in_switch_case = 0
 
+    def compare_types(self, a, b):
+        print(a, b)
+        if a == b:
+            return True
+        elif (
+            (a == SymbolType.FUNCTION_INT and b == SymbolType.INT)
+            or (a == SymbolType.INT and b == SymbolType.FUNCTION_INT)
+        ):
+            return True
+        elif (
+            (a == SymbolType.FUNCTION_VOID and b == SymbolType.VOID)
+            or (a == SymbolType.VOID and b == SymbolType.FUNCTION_VOID)
+        ):
+            return True
+        else:
+            return False
+
     def get_symbol_table_head(self):
         return list(self.symbol_table.items())[-1]
 
@@ -37,9 +54,9 @@ class SemanticAnalyzer:
 
     def function(self, latest_type):
         head = self.get_symbol_table_head()
-        if latest_type == "void":
+        if latest_type == SymbolType.VOID:
             self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_VOID
-        elif latest_type == "int":
+        elif latest_type == SymbolType.INT:
             self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_INT
 
     def end(self, lineno):
@@ -87,10 +104,22 @@ class SemanticAnalyzer:
             self.function_call_stack) > 0 else None
         given_args = self.argument_counter.pop() if len(
             self.argument_counter) > 0 else None
-        if (len(self.symbol_table[func_name]
-                ["params"]) != len(given_args)):
-            self.report_error(
-                lineno, f"Missmatch in number of arguments of '{func_name}'")
+
+        if len(self.symbol_table[func_name]["params"]) != len(given_args):
+            msg = f"Missmatch in number of arguments of '{func_name}'"
+            self.report_error(lineno, msg)
+
+        for i, arg in enumerate(given_args):
+            if i >= len(self.symbol_table[func_name]["params"]):
+                break
+            expected_type = self.symbol_table[func_name]["params"][i]
+            actual_type = self.symbol_table[arg[1]]["type"]
+            if not self.compare_types(expected_type, actual_type):
+                msg = (
+                    f"Mismatch in type of argument {i + 1} for {func_name}."
+                    f"Expected {expected_type} but got {actual_type} instead'"
+                )
+                self.report_error(lineno, msg)
 
     def argument(self, input_ptr):
         self.argument_counter[-1].append(input_ptr)
