@@ -72,7 +72,7 @@ class SemanticAnalyzer:
             if (
                 key == "main"
                 and item["type"] == SymbolType.FUNCTION_VOID
-                and item["params"] == ["void"]
+                and item["params"] == []
             ):
                 main_found = True
                 break
