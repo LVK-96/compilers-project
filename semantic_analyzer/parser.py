@@ -312,9 +312,10 @@ class LL1_parser:
             if self.input_ptr[to_compare] == "void" or self.input_ptr[to_compare] == "int":
                 self.latest_type = (
                     SymbolType.INT if self.input_ptr[to_compare] == "int"
-                    else SymbolType.VOID if self.input_ptr[to_compare] == "void"
-                    else None
+                    else SymbolType.VOID
                 )
+            else:
+                self.latest_type = None
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)

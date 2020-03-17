@@ -154,8 +154,14 @@ class SemanticAnalyzer:
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
-        self.type_to_check = self.symbol_table[self.get_index(input_ptr[1])]["type"]
-        self.type_check_active = True
+        try:
+            self.type_to_check = self.symbol_table[self.get_index(input_ptr[1])]["type"]
+            self.type_check_active = True
+        except TypeError:
+            self.type_to_check = None
+            self.type_check_active = False
+
+        
 
     def cancel_type_check(self):
         self.type_to_check = None
@@ -195,7 +201,10 @@ class SemanticAnalyzer:
             elif (symbol["type"] == SymbolType.VOID):
                 self.report_error(lineno, f"Illegal type of void for {current}")
                 #remove from symbol table
-                #del self.symbol_table[self.get_index(current)] #ToDo: necessary?
+                print(self.symbol_table)
+                print("remove void declaration from symbol table")
+                #del self.symbol_table[self.get_index(current)]
+                print(self.symbol_table)
             else:
                 #Variable not declared or not in scope - already reported by #pid
                 #remove from symbol table?
@@ -228,20 +237,24 @@ class SemanticAnalyzer:
 
     #Declare ID types and check scopes
     def pid(self, input_ptr, latest_type, lineno):
+        #print("latest type: ", latest_type)
+        #print(self.symbol_table)
         current = input_ptr[1]
         try:
             symbol = self.symbol_table[self.get_index(current)]
-            #print(symbol)
             if(symbol["type"] == None):
                 #ID is being declared
                 if latest_type == SymbolType.INT:
                     self.symbol_table[self.get_index(current)]["type"] = SymbolType.INT
                 elif latest_type == SymbolType.VOID:
+                    print("wrong place")
                     self.symbol_table[self.get_index(current)]["type"] = SymbolType.VOID
                 else:
+                    print("correct place")
                     #Not declaring, but referencing
                     #scanner still adds a new symbol to the table - remove it
                     del self.symbol_table[self.get_index(current)]
+                    #print(self.symbol_table)
                     try:
                         symbol = self.symbol_table[self.get_index(current)]
                         if(symbol["type"] == SymbolType.INT):
