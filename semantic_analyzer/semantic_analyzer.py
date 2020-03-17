@@ -28,68 +28,6 @@ class SemanticAnalyzer:
         # Integer represents number of nested loops
         self.in_while = 0
 
-<<<<<<< HEAD
-    def semantic_actions(self, action_symbol, latest_type, lineno):
-        if(action_symbol == "#PID"):
-            self.pid(latest_type)
-        elif(action_symbol == "#ADD"):
-            pass
-        elif(action_symbol == "#MULT"):
-            pass
-        elif(action_symbol == "#ASSIGN"):
-            pass
-        elif(action_symbol == "#FUNCTION"):
-            #update scope stack 
-            head = self.get_symbol_table_head()
-            if latest_type == "void":
-                self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_VOID
-            elif latest_type == "int":
-                self.symbol_table[head[0]]["type"] = SymbolType.FUNCTION_INT
-
-        elif(action_symbol == "#END"):
-            # Each program must have a main function
-            main_found = False
-            for key, item in self.symbol_table.items():
-                if key == "main" and item["type"] == SymbolType.FUNCTION_VOID and item["params"] == [
-                        "void"]:
-                    main_found = True
-                    break
-
-            if not main_found:
-                self.report_error(lineno, "main function not found")
-
-        elif(action_symbol == "#START_PARAM_COUNTER"):
-            self.param_counter_active = True
-            self.param_counter = []
-
-        elif(action_symbol == "#STOP_PARAM_COUNTER"):
-            latest_func = None
-            for key, item in self.symbol_table.items():
-                if item["type"] in [
-                        SymbolType.FUNCTION_VOID,
-                        SymbolType.FUNCTION_INT]:
-                    latest_func = key
-
-            if latest_func:
-                self.symbol_table[latest_func]["params"] = self.param_counter
-
-            self.param_counter_active = False
-
-        elif(action_symbol == "#PARAM"):
-            if self.param_counter_active:
-                self.param_counter.append(latest_type)
-
-        elif(action_symbol == "#ENDFUNCTION"):
-            #remove variables from symbol table and pop scope stack
-            #Is a generalized action symbol possible eg. #ENDSCOPE 
-            pass
-        elif(action_symbol == ""):
-            pass
-        elif(action_symbol == ""):
-            pass
-        elif(action_symbol == ""):
-            pass
-=======
         # Are we in a switch case
         # Integer represents number of nested switch case statements
         self.in_switch_case = 0
@@ -110,7 +48,6 @@ class SemanticAnalyzer:
             or (a == SymbolType.VOID and b == SymbolType.FUNCTION_VOID)
         ):
             return True
->>>>>>> 06c0841216a0c6b49ffb2fb80e366f5741221037
         else:
             return False
 
@@ -351,7 +288,3 @@ class SemanticAnalyzer:
                 f.write("There is no semantic errors.")
 
             f.close()
-
-    # def get_three_adress(self):
-    #    # returns the three address code
-    #    pass
