@@ -185,10 +185,10 @@ class LL1_parser:
         self.errors = []
         self.lineno = 1
         self.latest_type = None
-        symbol_table = OrderedDict()
+        symbol_table = []
         for keyword in keywords:
-            entry = {"type": SymbolType.KEYWORD}
-            symbol_table[keyword] = entry
+            entry = {"name": keyword, "type": SymbolType.KEYWORD}
+            symbol_table.append(entry)
         scanner = Scanner(filename, symbols, symbol_table, keywords, data)
         semantic_analyzer = SemanticAnalyzer(symbol_table)
         self.scanner = scanner
@@ -312,7 +312,8 @@ class LL1_parser:
             if self.input_ptr[to_compare] == "void" or self.input_ptr[to_compare] == "int":
                 self.latest_type = (
                     SymbolType.INT if self.input_ptr[to_compare] == "int"
-                    else SymbolType.VOID
+                    else SymbolType.VOID if self.input_ptr[to_compare] == "void"
+                    else None
                 )
             popped = self.stack.pop()
             if(popped != '$'):
