@@ -50,20 +50,28 @@ class SemanticAnalyzer:
         elif type == SymbolType.VOID:
             return "void"
 
-    def get_index(self, name, upper_limit=None):
+    def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
             r = min(upper_limit, len(self.symbol_table))
         else:
             r = len(self.symbol_table)
-        for i in reversed(range(r)):
-            if self.symbol_table[i]["name"] == name:
-                return i
 
-    def get_var_index(self, name):
-        for i in reversed(range(len(self.symbol_table))):
+        wanted_types = []
+        if wanted_type == "variable":
+            wanted_types = wanted_types + [SymbolType.INT, SymbolType.VOID, SymbolType.ARRAY_INT]
+        if wanted_type == "function":
+            wanted_types = wanted_types + [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
+
+        for i in reversed(range(r)):
             if (
-                self.symbol_table[i]["name"] == name
-                and self.symbol_table[i]["type"] in [SymbolType.INT, SymbolType.VOID, SymbolType.ARRAY_INT]
+                wanted_type
+                and self.symbol_table[i]["name"] == name
+                and self.symbol_table[i]["type"] in wanted_types
+            ):
+                return i
+            elif (
+                not wanted_type
+                and self.symbol_table[i]["name"] == name
             ):
                 return i
 
@@ -127,8 +135,7 @@ class SemanticAnalyzer:
                 break
 
         if latest_func:
-            self.symbol_table[self.get_function_index(
-                latest_func)]["params"] = self.param_counter
+            self.symbol_table[self.get_index(latest_func, wanted_type="function")]["params"] = self.param_counter
 
         self.param_counter_active = False
 
@@ -146,7 +153,7 @@ class SemanticAnalyzer:
     def start_argument_counter(self, input_ptr):
         try:
             if (
-                self.symbol_table[self.get_function_index(input_ptr[1])]["type"]
+                self.symbol_table[self.get_index(input_ptr[1], wanted_type="function")]["type"]
                 in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
             ):
                 # found a function definition
@@ -168,19 +175,18 @@ class SemanticAnalyzer:
             if len(self.argument_counter) == 0 and len(self.function_call_stack) == 0:
                 self.argument_counter_active = False
 
-            if len(self.symbol_table[self.get_function_index(
-                    func_name)]["params"]) != len(given_args):
+            func_params = self.symbol_table[self.get_index(func_name, wanted_type="function")]["params"]
+            n_of_params = len(func_params)
+            if n_of_params != len(given_args):
                 msg = f"Mismatch in numbers of arguments of '{func_name}'."
                 self.report_error(lineno, msg)
 
             for i, arg in enumerate(given_args):
-                if i >= len(
-                        self.symbol_table[self.get_function_index(func_name)]["params"]):
+                if i >= n_of_params:
                     break
-                expected_type = self.symbol_table[self.get_function_index(
-                    func_name)]["params"][i]
+                expected_type = func_params[i]
 
-                actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_var_index(arg[1])]["type"]
+                actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(arg[1])]["type"]
                 if not self.compare_types(expected_type, actual_type):
                     msg = (
                         f"Mismatch in type of argument {i + 1} for {func_name}. "
@@ -254,7 +260,7 @@ class SemanticAnalyzer:
         # to symbol table
         current = self.get_symbol_table_head()["name"]
         try:
-            symbol = self.symbol_table[self.get_var_index(current)]
+            symbol = self.symbol_table[self.get_index(current, wanted_type="variable")]
             if (symbol["type"] == SymbolType.INT):
                 # okay
                 pass
@@ -262,7 +268,7 @@ class SemanticAnalyzer:
                 self.report_error(
                     lineno, f"Illegal type of void for '{current}'.")
                 # remove from symbol table
-                del self.symbol_table[self.get_var_index(current)]
+                del self.symbol_table[self.get_index(current, wanted_type="variable")]
             else:
                 # Variable not declared or not in scope - already reported by #pid
                 # remove from symbol table?
