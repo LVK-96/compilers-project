@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for i in {1..4}
+for i in {1..5}
 do
     case="T$i"
     input="samples/${case}/input.txt"

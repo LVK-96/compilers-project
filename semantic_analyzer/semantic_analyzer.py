@@ -240,12 +240,16 @@ class SemanticAnalyzer:
         if self.type_check_active:
             input_type = None
             if input_ptr[0] == "ID":
-                input_type = self.symbol_table[self.get_index(
-                    input_ptr[1])]["type"]
+                idx = self.get_index(input_ptr[1])
+                if idx:
+                    input_type = self.symbol_table[idx]["type"]
+                else:
+                    self.report_error(lineno, f"'{input_ptr[1]}' is not defined.")
+
             elif input_ptr[0] == "NUM":
                 input_type = SymbolType.INT
 
-            if not self.compare_types(self.type_to_check, input_type):
+            if input_type and not self.compare_types(self.type_to_check, input_type):
                 input_type = self.format_type(input_type)
                 expected_type = self.format_type(self.type_to_check)
                 msg = (
@@ -269,8 +273,6 @@ class SemanticAnalyzer:
             elif (symbol["type"] == SymbolType.VOID):
                 self.report_error(
                     lineno, f"Illegal type of void for '{current}'.")
-                # remove from symbol table
-                del self.symbol_table[self.get_index(current, wanted_type="variable")]
             else:
                 # Variable not declared or not in scope - already reported by #pid
                 # remove from symbol table?
