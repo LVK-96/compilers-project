@@ -11,6 +11,7 @@ class SemanticAnalyzer:
         self.symbol_table = symbol_table
         self.ss = 0
         # Count params for functions in definitions
+        self.param_counter_active = False
         self.param_counter = []
 
         # Track function calls and arguments given to functions
@@ -90,22 +91,27 @@ class SemanticAnalyzer:
             self.report_error(lineno, "main function not found")
 
     def start_param_counter(self):
+        self.param_counter_active = True
         self.param_counter = []
 
     def stop_param_counter(self):
         latest_func = None
-        for item in self.symbol_table:
+        for item in self.symbol_table[::-1]:
             if item["type"] in [
                     SymbolType.FUNCTION_VOID,
                     SymbolType.FUNCTION_INT]:
                 latest_func = item["name"]
+                break
 
         if latest_func:
             self.symbol_table[self.get_function_index(
                 latest_func)]["params"] = self.param_counter
 
+        self.param_counter_active = False
+
     def param(self, latest_type):
-        self.param_counter.append(latest_type)
+        if self.param_counter_active:
+            self.param_counter.append(latest_type)
 
     def start_argument_counter(self, input_ptr):
         try:
