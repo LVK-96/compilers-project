@@ -2,8 +2,8 @@
 leo kivikunnas 525925
 jaakko koskela 526050
 """
+
 import sys
-from collections import OrderedDict
 import parser_generator
 from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
