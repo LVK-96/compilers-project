@@ -45,12 +45,18 @@ class SemanticAnalyzer:
 
     def get_var_index(self, name):
         for i in reversed(range(len(self.symbol_table))):
-            if self.symbol_table[i]["name"] == name and (self.symbol_table[i]["type"] == SymbolType.INT or self.symbol_table[i]["type"] == SymbolType.VOID):
+            if (
+                self.symbol_table[i]["name"] == name
+                and self.symbol_table[i]["type"] in [SymbolType.INT, SymbolType.VOID, SymbolType.ARRAY_INT]
+            ):
                 return i
 
     def get_function_index(self, name):
         for i in reversed(range(len(self.symbol_table))):
-            if self.symbol_table[i]["name"] == name and (self.symbol_table[i]["type"] == SymbolType.FUNCTION_INT or self.symbol_table[i]["type"] == SymbolType.FUNCTION_VOID):
+            if (
+                self.symbol_table[i]["name"] == name
+                and self.symbol_table[i]["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
+            ):
                 return i
 
     def compare_types(self, a, b):
@@ -113,6 +119,13 @@ class SemanticAnalyzer:
     def param(self, latest_type):
         if self.param_counter_active:
             self.param_counter.append(latest_type)
+
+    def array_param(self, latest_type):
+        if self.param_counter_active:
+            # Just always add array int, array of void is illegal
+            # so even if it somewho gets through to this point
+            # we still want an array of ints as the type
+            self.param_counter.append(SymbolType.ARRAY_INT)
 
     def start_argument_counter(self, input_ptr):
         try:
@@ -271,6 +284,22 @@ class SemanticAnalyzer:
             # Function not declared or not in scope - should never happen
             self.report_error(lineno, f"{current} is not defined")
 
+    def array(self, lineno):
+        current = self.get_symbol_table_head()["name"]
+        try:
+            symbol = self.symbol_table[self.get_index(current)]
+            if (symbol["type"] == SymbolType.INT):
+                self.symbol_table[self.get_index(
+                    current)]["type"] = SymbolType.ARRAY_INT
+            elif (symbol["type"] == SymbolType.VOID):
+                self.report_error(
+                    lineno, f"Illegal type of void for array '{current}'.")
+            else:
+                self.report_error(lineno, f"{current} is not defined")
+
+        except KeyError:
+            self.report_error(lineno, f"{current} is not defined")
+
     # Declare ID types and check scopes
 
     #how to separate function and variable declaration checks
@@ -291,20 +320,8 @@ class SemanticAnalyzer:
                     # scanner still adds a new symbol to the table - remove it
                     del self.symbol_table[self.get_index(current)]
                     try:
-                        #ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists
-                        symbol = self.symbol_table[self.get_index(current)]
-                        if(symbol["type"] == SymbolType.INT):
-                            # ID declared and in scope
-                            pass
-                        elif(symbol["type"] == SymbolType.FUNCTION_INT):
-                            # ID declared and in scope
-                            pass
-                        elif(symbol["type"] == SymbolType.FUNCTION_VOID):
-                            # ID declared and in scope
-                            pass
-                        else:
-                            # Invalid type for ID
-                            pass
+                        # ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists
+                        self.symbol_table[self.get_index(current)]
                     except TypeError:
                         # ID not declared or not in scope
                         if current != "output":
@@ -335,6 +352,8 @@ class SemanticAnalyzer:
             self.variable(lineno)
         elif action_symbol == "#FUNCTION":
             self.function(lineno)
+        elif action_symbol == "#ARRAY":
+            self.array(lineno)
         elif action_symbol == "#BEGINSCOPE":
             self.beginscope()
         elif action_symbol == "#ENDSCOPE":
@@ -347,6 +366,8 @@ class SemanticAnalyzer:
             self.stop_param_counter()
         elif action_symbol == "#PARAM":
             self.param(latest_type)
+        elif action_symbol == "#ARRAY_PARAM":
+            self.array_param(latest_type)
         elif action_symbol == "#START_ARGUMENT_COUNTER":
             self.start_argument_counter(input_ptr)
         elif action_symbol == "#STOP_ARGUMENT_COUNTER":

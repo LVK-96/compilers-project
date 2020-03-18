@@ -10,8 +10,9 @@ class SymbolType(Enum):
     KEYWORD = 1
     FUNCTION_INT = 2
     FUNCTION_VOID = 3
-    INT = 4
-    VOID = 5
+    ARRAY_INT = 4
+    INT = 5
+    VOID = 6
 
 
 class Scanner:
@@ -261,7 +262,7 @@ class Scanner:
         self.tokens[self.lineno].append((token, substring))
 
     def handle_match(self, token, substring):
-        if token == "ID":
+        if token == "ID" and substring not in [s["name"] for s in self.symbol_table]:
             # add new symbol and set type identifier
             self.symbol_table.append({"name": substring, "type": None})
             self.save_token(token, substring)
