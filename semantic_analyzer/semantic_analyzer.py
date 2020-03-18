@@ -318,7 +318,6 @@ class SemanticAnalyzer:
                 else:
                     # Not declaring, but referencing
                     # scanner still adds a new symbol to the table - remove it
-                    del self.symbol_table[self.get_index(current)]
                     try:
                         # ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists
                         self.symbol_table[self.get_index(current)]
