@@ -2,7 +2,7 @@
 
 for i in {1..4}
 do
-    case="T{$i}"
+    case="T$i"
     input="samples/${case}/input.txt"
     semantic_errors="samples/${case}/semantic_errors.txt"
 

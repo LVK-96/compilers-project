@@ -20,6 +20,7 @@ class SemanticAnalyzer:
         # and input ptr points to function name
         # Head is the active function
         # Pop head in #STOP_ARGUMENT_COUNTER
+        self.argument_counter_active = False
         self.function_call_stack = []
         self.argument_counter = []
         self.errors = []
@@ -119,46 +120,49 @@ class SemanticAnalyzer:
                 self.symbol_table[self.get_function_index(input_ptr[1])]["type"]
                 in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
             ):
-                #found a function definition
+                # found a function definition
+                self.argument_counter_active = True;
                 self.function_call_stack.append(input_ptr[1])
                 self.argument_counter.append([])
-                
+
         except TypeError:
-            #not a function call
+            # not a function call
             pass
 
-        
-
     def stop_argument_counter(self, lineno):
-        print(self.symbol_table)
-        func_name = self.function_call_stack.pop() if len(
-            self.function_call_stack) > 0 else None
-        given_args = self.argument_counter.pop() if len(
-            self.argument_counter) > 0 else None
+        if self.argument_counter_active:
+            func_name = self.function_call_stack.pop() if len(
+                self.function_call_stack) > 0 else None
+            given_args = self.argument_counter.pop() if len(
+                self.argument_counter) > 0 else None
 
-        if len(self.symbol_table[self.get_function_index(
-                func_name)]["params"]) != len(given_args):
-            msg = f"Missmatch in number of arguments of '{func_name}'"
-            self.report_error(lineno, msg)
+            if len(self.argument_counter) == 0 and len(self.function_call_stack) == 0:
+                self.argument_counter_active = False
 
-        for i, arg in enumerate(given_args):
-            if i >= len(
-                    self.symbol_table[self.get_function_index(func_name)]["params"]):
-                break
-            expected_type = self.symbol_table[self.get_function_index(
-                func_name)]["params"][i]
-
-            actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_var_index(arg[1])]["type"]
-            if not self.compare_types(expected_type, actual_type):
-                msg = (
-                    f"Mismatch in type of argument {i + 1} for {func_name}. "
-                    f"Expected '{expected_type}' but "
-                    f"got '{actual_type}' instead'"
-                )
+            if len(self.symbol_table[self.get_function_index(
+                    func_name)]["params"]) != len(given_args):
+                msg = f"Missmatch in number of arguments of '{func_name}'"
                 self.report_error(lineno, msg)
 
+            for i, arg in enumerate(given_args):
+                if i >= len(
+                        self.symbol_table[self.get_function_index(func_name)]["params"]):
+                    break
+                expected_type = self.symbol_table[self.get_function_index(
+                    func_name)]["params"][i]
+
+                actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_var_index(arg[1])]["type"]
+                if not self.compare_types(expected_type, actual_type):
+                    msg = (
+                        f"Mismatch in type of argument {i + 1} for {func_name}. "
+                        f"Expected '{expected_type}' but "
+                        f"got '{actual_type}' instead'"
+                    )
+                    self.report_error(lineno, msg)
+
     def argument(self, input_ptr):
-        self.argument_counter[-1].append(input_ptr)
+        if self.argument_counter_active:
+            self.argument_counter[-1].append(input_ptr)
 
     def enter_while(self):
         self.in_while += 1
@@ -287,7 +291,7 @@ class SemanticAnalyzer:
                     # scanner still adds a new symbol to the table - remove it
                     del self.symbol_table[self.get_index(current)]
                     try:
-                        #ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists 
+                        #ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists
                         symbol = self.symbol_table[self.get_index(current)]
                         if(symbol["type"] == SymbolType.INT):
                             # ID declared and in scope
