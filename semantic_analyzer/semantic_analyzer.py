@@ -7,7 +7,7 @@ from scanner import SymbolType
 
 
 class SemanticAnalyzer:
-    def __init__(self, symbol_table):
+    def __init__(self, symbol_table, scope_stack):
         self.symbol_table = symbol_table
         self.ss = 0
         # Count params for functions in definitions
@@ -24,7 +24,7 @@ class SemanticAnalyzer:
         self.function_call_stack = []
         self.argument_counter = []
         self.errors = []
-        self.scope_stack = []
+        self.scope_stack = scope_stack
 
         # Store type to check
         # Are we in a while loop
@@ -38,8 +38,12 @@ class SemanticAnalyzer:
         self.type_check_active = False
         self.type_to_check = None
 
-    def get_index(self, name):
-        for i in reversed(range(len(self.symbol_table))):
+    def get_index(self, name, upper_limit=None):
+        if upper_limit:
+            r = min(upper_limit, len(self.symbol_table))
+        else:
+            r = len(self.symbol_table)
+        for i in reversed(range(r)):
             if self.symbol_table[i]["name"] == name:
                 return i
 
@@ -134,7 +138,7 @@ class SemanticAnalyzer:
                 in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
             ):
                 # found a function definition
-                self.argument_counter_active = True;
+                self.argument_counter_active = True
                 self.function_call_stack.append(input_ptr[1])
                 self.argument_counter.append([])
 
@@ -306,7 +310,8 @@ class SemanticAnalyzer:
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
         try:
-            symbol = self.symbol_table[self.get_index(current)]
+            idx = self.get_index(current)
+            symbol = self.symbol_table[idx]
             if(symbol["type"] is None):
                 # ID is being declared
                 if latest_type == SymbolType.INT:
@@ -315,19 +320,26 @@ class SemanticAnalyzer:
                 elif latest_type == SymbolType.VOID:
                     self.symbol_table[self.get_index(
                         current)]["type"] = SymbolType.VOID
-                else:
-                    # Not declaring, but referencing
-                    # scanner still adds a new symbol to the table - remove it
-                    try:
-                        # ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists
-                        self.symbol_table[self.get_index(current)]
-                    except TypeError:
-                        # ID not declared or not in scope
-                        if current != "output":
-                            self.report_error(lineno, f"{current} is not defined")
 
         except TypeError:
             # ID not declared or not in scope - this should never be reached
+            self.report_error(lineno, f"{current} is not defined")
+
+    def use_pid(self, input_ptr, lineno):
+        current = input_ptr[1]
+        idx = self.get_index(current, upper_limit=self.scope_stack[-1])
+        if idx:
+            # Found in upper scope -> scanner added a false entry
+            # Pop false entry added by scanner
+            self.symbol_table.pop()
+
+        if not idx:
+            # Not found in upper scope, search local scope
+            idx = self.get_index(current)
+        try:
+            self.symbol_table[idx]
+        except TypeError or IndexError:
+            # ID not defined in any available scope
             self.report_error(lineno, f"{current} is not defined")
 
     def beginscope(self):
@@ -347,6 +359,8 @@ class SemanticAnalyzer:
     def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if action_symbol == "#PID":
             self.pid(input_ptr, latest_type, lineno)
+        if action_symbol == "#USE_PID":
+            self.use_pid(input_ptr, lineno)
         elif action_symbol == "#VARIABLE":
             self.variable(lineno)
         elif action_symbol == "#FUNCTION":

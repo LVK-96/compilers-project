@@ -16,13 +16,14 @@ class SymbolType(Enum):
 
 
 class Scanner:
-    def __init__(self, filename, symbols, symbol_table, keywords, data):
+    def __init__(self, filename, symbols, symbol_table, keywords, data, scope_stack):
         self.SYMBOL = symbols
         self.KEYWORD = keywords
         self.lineno = 1
         self.tokens = {}
         # reserve space for type identifier
         self.symbol_table = symbol_table
+        self.scope_stack = scope_stack
         self.errors = []
         self.data = data
 
@@ -262,8 +263,14 @@ class Scanner:
         self.tokens[self.lineno].append((token, substring))
 
     def handle_match(self, token, substring):
-        if token == "ID" and substring not in [s["name"] for s in self.symbol_table]:
-            # add new symbol and set type identifier
+        if (
+            token == "ID"
+            and substring not in [s["name"] for s in self.symbol_table[self.scope_stack[-1]:]]
+        ):
+            # add new symbol and set type identifier if it is not declared in local scope
+            # Might add false entries when we are using IDs
+            # Removing these false entries is handeled in use_pid in the
+            # semantic_analyzer
             self.symbol_table.append({"name": substring, "type": None})
             self.save_token(token, substring)
 

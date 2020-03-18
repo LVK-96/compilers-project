@@ -3,14 +3,14 @@ Declaration-list -> Declaration Declaration-list | EPSILON
 Declaration -> Declaration-initial Declaration-prime
 Declaration-initial -> Type-specifier #PID ID
 Declaration-prime -> #FUNCTION Fun-declaration-prime | #VARIABLE Var-declaration-prime
-Var-declaration-prime -> #PARAM ; | #ARRAY #ARRAY_PARAM [ NUM ] ;
+Var-declaration-prime -> #PARAM ; | #ARRAY [ NUM ] ;
 Fun-declaration-prime -> #BEGINSCOPE ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt
 Type-specifier -> int | void
 Params -> int #PID #PARAM ID Param-prime Param-list | void Param-list-void-abtar
 Param-list-void-abtar -> #PID #PARAM ID Param-prime Param-list | EPSILON
 Param-list -> , Param Param-list | EPSILON
 Param -> Declaration-initial Param-prime
-Param-prime -> #ARRAY_PARAM [ ] | EPSILON
+Param-prime -> #ARRAY #ARRAY_PARAM [ ] | EPSILON
 Compound-stmt -> { Declaration-list Statement-list #ENDSCOPE }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | #BEGINSCOPE Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
@@ -23,7 +23,7 @@ Switch-stmt -> switch #ENTER_SWITCH_CASE ( Expression ) { Case-stmts Default-stm
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
-Expression -> Simple-expression-zegond | #PID #START_ARGUMENT_COUNTER #TYPE_CHECK #START_TYPE_CHECK ID B
+Expression -> Simple-expression-zegond | #USE_PID #START_ARGUMENT_COUNTER #TYPE_CHECK #START_TYPE_CHECK ID B
 B -> = Expression | #CANCEL_TYPE_CHECK [ Expression ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
@@ -39,7 +39,7 @@ Term -> Factor G
 Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
-Factor -> ( Expression ) | #PID #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
+Factor -> ( Expression ) | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
 Var-call-prime -> ( #CANCEL_TYPE_CHECK Args #STOP_ARGUMENT_COUNTER ) | Var-prime
 Var-prime -> [ #CANCEL_TYPE_CHECK Expression ] | EPSILON
 Factor-prime -> ( #CANCEL_TYPE_CHECK Args #STOP_ARGUMENT_COUNTER ) | EPSILON

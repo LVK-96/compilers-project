@@ -186,11 +186,12 @@ class LL1_parser:
         self.lineno = 1
         self.latest_type = None
         symbol_table = []
+        scope_stack = [0]
         for keyword in keywords:
             entry = {"name": keyword, "type": SymbolType.KEYWORD}
             symbol_table.append(entry)
-        scanner = Scanner(filename, symbols, symbol_table, keywords, data)
-        semantic_analyzer = SemanticAnalyzer(symbol_table)
+        scanner = Scanner(filename, symbols, symbol_table, keywords, data, scope_stack)
+        semantic_analyzer = SemanticAnalyzer(symbol_table, scope_stack)
         self.scanner = scanner
         self.semantic_analyzer = semantic_analyzer
         self.input_ptr = self.scanner.get_next_token()
