@@ -331,16 +331,18 @@ class SemanticAnalyzer:
         if idx:
             # Found in upper scope -> scanner added a false entry
             # Pop false entry added by scanner
+            table_entry = self.symbol_table[idx]
             self.symbol_table.pop()
 
         if not idx:
             # Not found in upper scope, search local scope
             idx = self.get_index(current)
-        try:
-            self.symbol_table[idx]
-        except TypeError or IndexError:
-            # ID not defined in any available scope
-            self.report_error(lineno, f"{current} is not defined")
+            table_entry = self.symbol_table[idx]
+
+        if not table_entry["type"]:
+            if current != "output":
+                self.report_error(lineno, f"{current} is not defined")
+                del self.symbol_table[idx]
 
     def beginscope(self):
         # Add function ID to scope stack
