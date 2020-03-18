@@ -89,7 +89,7 @@ class SemanticAnalyzer:
                 break
 
         if not main_found:
-            self.report_error(lineno, "main function not found")
+            self.report_error(lineno, "main function not found!")
 
     def start_param_counter(self):
         self.param_counter_active = True
@@ -141,7 +141,7 @@ class SemanticAnalyzer:
 
             if len(self.symbol_table[self.get_function_index(
                     func_name)]["params"]) != len(given_args):
-                msg = f"Missmatch in number of arguments of '{func_name}'"
+                msg = f"Mismatch in numbers of arguments of '{func_name}'."
                 self.report_error(lineno, msg)
 
             for i, arg in enumerate(given_args):
@@ -183,7 +183,7 @@ class SemanticAnalyzer:
 
     def brk(self, lineno):
         if self.in_while == 0 and self.in_switch_case == 0:
-            msg = "No 'while' or 'switch' found for 'break'"
+            msg = "No 'while' or 'switch' found for 'break'."
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
@@ -236,7 +236,7 @@ class SemanticAnalyzer:
                 pass
             elif (symbol["type"] == SymbolType.VOID):
                 self.report_error(
-                    lineno, f"Illegal type of void for {current}")
+                    lineno, f"Illegal type of void for '{current}'.")
                 # remove from symbol table
                 del self.symbol_table[self.get_var_index(current)]
             else:
@@ -307,7 +307,8 @@ class SemanticAnalyzer:
                             pass
                     except TypeError:
                         # ID not declared or not in scope
-                        self.report_error(lineno, f"{current}  is not defined")
+                        if current != "output":
+                            self.report_error(lineno, f"{current} is not defined")
 
         except TypeError:
             # ID not declared or not in scope - this should never be reached
@@ -379,6 +380,6 @@ class SemanticAnalyzer:
                 for i, error in enumerate(self.errors):
                     f.write(f"{error}\n")
             else:
-                f.write("There is no semantic errors.")
+                f.write("The input program is semantically correct.")
 
             f.close()

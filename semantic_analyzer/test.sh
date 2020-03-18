@@ -9,6 +9,6 @@ do
     echo "${case}:"
     python parser.py "${input}"
     echo "Semantic errors"
-    ../are_contents_equal "syntax_errors.txt" "${semantic_errors}"
+    ../are_contents_equal "semantic_errors.txt" "${semantic_errors}"
     echo ""
 done
