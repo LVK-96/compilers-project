@@ -184,14 +184,16 @@ class SemanticAnalyzer:
             for i, arg in enumerate(given_args):
                 if i >= n_of_params:
                     break
-                expected_type = func_params[i]
 
+                expected_type = func_params[i]
                 actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(arg[1])]["type"]
                 if not self.compare_types(expected_type, actual_type):
+                    expected_type = self.format_type(expected_type)
+                    actual_type = self.format_type(actual_type)
                     msg = (
-                        f"Mismatch in type of argument {i + 1} for {func_name}. "
+                        f"Mismatch in type of argument {i + 1} of '{func_name}'. "
                         f"Expected '{expected_type}' but "
-                        f"got '{actual_type}' instead'"
+                        f"got '{actual_type}' instead."
                     )
                     self.report_error(lineno, msg)
 
@@ -272,11 +274,11 @@ class SemanticAnalyzer:
             else:
                 # Variable not declared or not in scope - already reported by #pid
                 # remove from symbol table?
-                self.report_error(lineno, f"{current} is not defined")
+                self.report_error(lineno, f"'{current}' is not defined.")
 
         except KeyError:
             # Variable not declared or not in scope - should never happen
-            self.report_error(lineno, f"{current} is not defined")
+            self.report_error(lineno, f"'{current}' is not defined.")
 
     # Mark symbol as a function
     def function(self, lineno):
@@ -295,11 +297,11 @@ class SemanticAnalyzer:
             else:
                 # function return type not declared properly - already reported by pid
                 # remove from symbol table
-                self.report_error(lineno, f"{current} is not defined")
+                self.report_error(lineno, f"'{current}' is not defined.")
 
         except KeyError:
             # Function not declared or not in scope - should never happen
-            self.report_error(lineno, f"{current} is not defined")
+            self.report_error(lineno, f"'{current}' is not defined.")
 
     def array(self, lineno):
         current = self.get_symbol_table_head()["name"]
@@ -312,14 +314,11 @@ class SemanticAnalyzer:
                 self.report_error(
                     lineno, f"Illegal type of void for array '{current}'.")
             else:
-                self.report_error(lineno, f"{current} is not defined")
+                self.report_error(lineno, f"'{current}' is not defined.")
 
         except KeyError:
-            self.report_error(lineno, f"{current} is not defined")
+            self.report_error(lineno, f"'{current}' is not defined.")
 
-    # Declare ID types and check scopes
-
-    #how to separate function and variable declaration checks
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
         try:
@@ -336,7 +335,7 @@ class SemanticAnalyzer:
 
         except TypeError:
             # ID not declared or not in scope - this should never be reached
-            self.report_error(lineno, f"{current} is not defined")
+            self.report_error(lineno, f"'{current}' is not defined.")
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
@@ -354,7 +353,7 @@ class SemanticAnalyzer:
 
         if not table_entry["type"]:
             if current != "output":
-                self.report_error(lineno, f"{current} is not defined")
+                self.report_error(lineno, f"'{current}' is not defined.")
                 del self.symbol_table[idx]
 
     def beginscope(self):
