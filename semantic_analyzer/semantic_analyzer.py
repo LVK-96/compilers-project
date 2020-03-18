@@ -41,6 +41,16 @@ class SemanticAnalyzer:
             if self.symbol_table[i]["name"] == name:
                 return i
 
+    def get_var_index(self, name):
+        for i in reversed(range(len(self.symbol_table))):
+            if self.symbol_table[i]["name"] == name and (self.symbol_table[i]["type"] == SymbolType.INT or self.symbol_table[i]["type"] == SymbolType.VOID):
+                return i
+
+    def get_function_index(self, name):
+        for i in reversed(range(len(self.symbol_table))):
+            if self.symbol_table[i]["name"] == name and (self.symbol_table[i]["type"] == SymbolType.FUNCTION_INT or self.symbol_table[i]["type"] == SymbolType.FUNCTION_VOID):
+                return i
+
     def compare_types(self, a, b):
         if a == b:
             return True
@@ -91,38 +101,48 @@ class SemanticAnalyzer:
                 latest_func = item["name"]
 
         if latest_func:
-            self.symbol_table[self.get_index(
+            self.symbol_table[self.get_function_index(
                 latest_func)]["params"] = self.param_counter
 
     def param(self, latest_type):
         self.param_counter.append(latest_type)
 
     def start_argument_counter(self, input_ptr):
-        if (
-            self.symbol_table[self.get_index(input_ptr[1])]["type"]
-            in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
-        ):
-            self.function_call_stack.append(input_ptr[1])
-            self.argument_counter.append([])
+        try:
+            if (
+                self.symbol_table[self.get_function_index(input_ptr[1])]["type"]
+                in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
+            ):
+                #found a function definition
+                self.function_call_stack.append(input_ptr[1])
+                self.argument_counter.append([])
+                
+        except TypeError:
+            #not a function call
+            pass
+
+        
 
     def stop_argument_counter(self, lineno):
+        print(self.symbol_table)
         func_name = self.function_call_stack.pop() if len(
             self.function_call_stack) > 0 else None
         given_args = self.argument_counter.pop() if len(
             self.argument_counter) > 0 else None
 
-        if len(self.symbol_table[self.get_index(
+        if len(self.symbol_table[self.get_function_index(
                 func_name)]["params"]) != len(given_args):
             msg = f"Missmatch in number of arguments of '{func_name}'"
             self.report_error(lineno, msg)
 
         for i, arg in enumerate(given_args):
             if i >= len(
-                    self.symbol_table[self.get_index(func_name)]["params"]):
+                    self.symbol_table[self.get_function_index(func_name)]["params"]):
                 break
-            expected_type = self.symbol_table[self.get_index(
+            expected_type = self.symbol_table[self.get_function_index(
                 func_name)]["params"][i]
-            actual_type = self.symbol_table[self.get_index(arg[1])]["type"]
+
+            actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_var_index(arg[1])]["type"]
             if not self.compare_types(expected_type, actual_type):
                 msg = (
                     f"Mismatch in type of argument {i + 1} for {func_name}. "
@@ -200,7 +220,7 @@ class SemanticAnalyzer:
         # to symbol table
         current = self.get_symbol_table_head()["name"]
         try:
-            symbol = self.symbol_table[self.get_index(current)]
+            symbol = self.symbol_table[self.get_var_index(current)]
             if (symbol["type"] == SymbolType.INT):
                 # okay
                 pass
@@ -208,7 +228,7 @@ class SemanticAnalyzer:
                 self.report_error(
                     lineno, f"Illegal type of void for {current}")
                 # remove from symbol table
-                del self.symbol_table[self.get_index(current)]
+                del self.symbol_table[self.get_var_index(current)]
             else:
                 # Variable not declared or not in scope - already reported by #pid
                 # remove from symbol table?
@@ -220,6 +240,7 @@ class SemanticAnalyzer:
 
     # Mark symbol as a function
     def function(self, lineno):
+        # ToDo: check that there is a valid function and we arent mistaking a variable - is this only for function declarations - what about function calls
         # input pointer not in id anymore, but it is the most recent addition
         # to symbol table
         current = self.get_symbol_table_head()["name"]
@@ -242,6 +263,7 @@ class SemanticAnalyzer:
 
     # Declare ID types and check scopes
 
+    #how to separate function and variable declaration checks
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
         try:
@@ -259,6 +281,7 @@ class SemanticAnalyzer:
                     # scanner still adds a new symbol to the table - remove it
                     del self.symbol_table[self.get_index(current)]
                     try:
+                        #ToDo: at this point we don't know whether it is a variable or a function - we can only do a general check - that something with that name exists 
                         symbol = self.symbol_table[self.get_index(current)]
                         if(symbol["type"] == SymbolType.INT):
                             # ID declared and in scope
