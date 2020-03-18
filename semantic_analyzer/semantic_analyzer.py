@@ -38,6 +38,18 @@ class SemanticAnalyzer:
         self.type_check_active = False
         self.type_to_check = None
 
+    def format_type(self, type):
+        if type == SymbolType.FUNCTION_INT:
+            return "int"
+        elif type == SymbolType.FUNCTION_VOID:
+            return "void"
+        elif type == SymbolType.ARRAY_INT:
+            return "array"
+        elif type == SymbolType.INT:
+            return "int"
+        elif type == SymbolType.VOID:
+            return "void"
+
     def get_index(self, name, upper_limit=None):
         if upper_limit:
             r = min(upper_limit, len(self.symbol_table))
@@ -226,16 +238,11 @@ class SemanticAnalyzer:
                 input_type = SymbolType.INT
 
             if not self.compare_types(self.type_to_check, input_type):
-                if input_type in [
-                        SymbolType.FUNCTION_INT,
-                        SymbolType.FUNCTION_VOID]:
-                    input_type = (
-                        SymbolType.INT if input_type == SymbolType.FUNCTION_INT
-                        else SymbolType.VOID
-                    )
+                input_type = self.format_type(input_type)
+                expected_type = self.format_type(self.type_to_check)
                 msg = (
-                    f"Type mismatch in operands, Got '{input_type}' "
-                    f"instead of '{self.type_to_check}'"
+                    f"Type mismatch in operands, Got {input_type} "
+                    f"instead of {expected_type}."
                 )
                 self.report_error(lineno, msg)
 
