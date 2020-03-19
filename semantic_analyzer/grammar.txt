@@ -14,21 +14,21 @@ Param-prime -> #ARRAY #ARRAY_PARAM [ ] | #PARAM EPSILON
 Compound-stmt -> { Declaration-list Statement-list #ENDSCOPE }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | #BEGINSCOPE Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
-Expression-stmt -> Expression ; | #CONTINUE continue ; | #BREAK break ; | ;
-Selection-stmt -> if ( Expression ) Statement else Statement
-Iteration-stmt -> while #ENTER_WHILE ( Expression ) Statement #EXIT_WHILE
+Expression-stmt -> #START_TYPE_CHECK Expression #TYPE_CHECK ; | #CONTINUE continue ; | #BREAK break ; | ;
+Selection-stmt -> if ( #START_TYPE_CHECK Expression #TYPE_CHECK ) Statement else Statement
+Iteration-stmt -> while #ENTER_WHILE ( #START_TYPE_CHECK Expression #TYPE_CHECK ) Statement #EXIT_WHILE
 Return-stmt -> return Return-stmt-prime
-Return-stmt-prime -> ; | Expression ;
-Switch-stmt -> switch #ENTER_SWITCH_CASE ( Expression ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
+Return-stmt-prime -> ; | #START_TYPE_CHECK Expression #TYPE_CHECK ;
+Switch-stmt -> switch #ENTER_SWITCH_CASE ( #START_TYPE_CHECK Expression #TYPE_CHECK ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
-Expression -> Simple-expression-zegond | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID B
-B -> #NOT_FUNCTION_CALL = Expression | #NOT_FUNCTION_CALL #CANCEL_TYPE_CHECK [ Expression ] H | Simple-expression-prime
+Expression -> Simple-expression-zegond | #USE_PID #ADD_TO_TYPE_CHECK ID B
+B -> #NOT_FUNCTION_CALL = Expression | #NOT_FUNCTION_CALL [ #INDEXING #START_TYPE_CHECK Expression #TYPE_CHECK ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
 Simple-expression-prime -> Additive-expression-prime C
-C -> Relop Additive-expression | #CANCEL_TYPE_CHECK EPSILON
+C -> Relop Additive-expression | EPSILON
 Relop -> < | ==
 Additive-expression -> Term D
 Additive-expression-prime -> Term-prime D
@@ -39,11 +39,11 @@ Term -> Factor G
 Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
-Factor -> ( Expression ) | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
-Var-call-prime -> #FUNCTION_CALL ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL Var-prime
-Var-prime -> [ #CANCEL_TYPE_CHECK Expression ] | EPSILON
-Factor-prime -> #FUNCTION_CALL ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL EPSILON
-Factor-zegond -> ( Expression ) | #TYPE_CHECK NUM
+Factor -> ( #START_TYPE_CHECK Expression #TYPE_CHECK ) | #USE_PID #ADD_TO_TYPE_CHECK ID Var-call-prime | #ADD_TO_TYPE_CHECK NUM
+Var-call-prime -> #FUNCTION_CALL ( #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL Var-prime
+Var-prime -> [ #INDEXING #START_TYPE_CHECK Expression #TYPE_CHECK ] | EPSILON
+Factor-prime -> #FUNCTION_CALL ( #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL EPSILON
+Factor-zegond -> ( #START_TYPE_CHECK Expression #TYPE_CHECK ) | #ADD_TO_TYPE_CHECK NUM
 Args -> Arg-list | EPSILON
-Arg-list -> #ARGUMENT Expression Arg-list-prime
-Arg-list-prime -> , #ARGUMENT Expression Arg-list-prime | EPSILON
+Arg-list -> #ARGUMENT #START_TYPE_CHECK Expression #TYPE_CHECK Arg-list-prime
+Arg-list-prime -> , #ARGUMENT #START_TYPE_CHECK Expression #TYPE_CHECK Arg-list-prime | EPSILON

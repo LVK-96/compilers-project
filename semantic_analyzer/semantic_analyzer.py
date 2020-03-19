@@ -37,7 +37,7 @@ class SemanticAnalyzer:
         self.in_switch_case = 0
 
         self.type_check_active = False
-        self.type_to_check = None
+        self.type_check_stack = []
 
     def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
@@ -201,41 +201,64 @@ class SemanticAnalyzer:
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
-        idx = self.get_index(input_ptr[1])
-        if idx is not None:
-            self.type_to_check = self.symbol_table[idx]["type"]
-            self.type_check_active = True
-        else:
-            self.type_to_check = None
-            self.type_check_active = False
-
-    def cancel_type_check(self):
-        self.type_to_check = None
-        self.type_check_active = False
+        self.type_check_active = True
+        self.type_check_stack.append([])
 
     def type_check(self, lineno, input_ptr):
         if self.type_check_active:
-            input_type = None
-            if input_ptr[0] == "ID":
-                idx = self.get_index(input_ptr[1])
-                if idx is not None:
-                    input_type = self.symbol_table[idx]["type"]
-                else:
-                    self.report_error(lineno, f"'{input_ptr[1]}' is not defined.")
+            for i in range(len(self.type_check_stack[-1])):
+                elem0 = self.type_check_stack[-1][i] if i < len(self.type_check_stack[-1]) else None
+                elem1 = self.type_check_stack[-1][i + 1] if i + 1 < len(self.type_check_stack[-1]) else None
 
-            elif input_ptr[0] == "NUM":
-                input_type = SymbolType.INT
+                if elem0 and elem1:
+                    idx0 = self.get_index(elem0[0])
+                    idx1 = self.get_index(elem1[0])
 
-            if input_type and not self.compare_types(self.type_to_check, input_type):
-                input_type = format_type(input_type)
-                expected_type = format_type(self.type_to_check)
-                msg = (
-                    f"Type mismatch in operands, Got {input_type} "
-                    f"instead of {expected_type}."
-                )
-                self.report_error(lineno, msg)
+                    correct_type0 = None
+                    if idx0 is not None:
+                        symbol0 = self.symbol_table[idx0]
+                        correct_type0 = symbol0["type"]
+                        if elem0[1]:
+                            if symbol0["type"] == SymbolType.ARRAY_INT:
+                                correct_type0 = SymbolType.INT
+                            elif symbol0["type"] == SymbolType.ARRAY_VOID:
+                                correct_type0 = SymbolType.INT
+                    elif elem0[0].isnumeric():
+                        correct_type0 = SymbolType.INT
 
-            self.cancel_type_check()
+                    correct_type1 = None
+                    if idx1 is not None:
+                        symbol1 = self.symbol_table[idx1]
+                        correct_type1 = symbol1["type"]
+                        if elem1[1]:
+                            if symbol1["type"] == SymbolType.ARRAY_INT:
+                                correct_type1 = SymbolType.INT
+                            elif symbol1["type"] == SymbolType.ARRAY_VOID:
+                                correct_type1 = SymbolType.INT
+                    elif elem1[0].isnumeric():
+                        correct_type1 = SymbolType.INT
+
+                    if correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
+                        lhs = format_type(correct_type0)
+                        rhs = format_type(correct_type1)
+                        msg = (
+                            f"Type mismatch in operands, Got {rhs} "
+                            f"instead of {lhs}."
+                        )
+                        self.report_error(lineno, msg)
+
+        self.type_check_stack.pop()
+        if len(self.type_check_stack) < 1:
+            self.type_check_active = False
+
+    def add_to_type_check(self, input_ptr):
+        if self.type_check_active:
+            symbol = (input_ptr[1], 0)
+            self.type_check_stack[-1].append(symbol)
+
+    def indexing(self):
+        if self.type_check_active:
+            self.type_check_stack[-1][-1] = (self.type_check_stack[-1][-1][0], 1)
 
     # Check that variable type not void
     def variable(self, lineno):
@@ -405,10 +428,12 @@ class SemanticAnalyzer:
             self.brk(lineno)
         elif action_symbol == "#START_TYPE_CHECK":
             self.start_type_check(input_ptr)
-        elif action_symbol == "#CANCEL_TYPE_CHECK":
-            self.cancel_type_check()
         elif action_symbol == "#TYPE_CHECK":
             self.type_check(lineno, input_ptr)
+        elif action_symbol == "#ADD_TO_TYPE_CHECK":
+            self.add_to_type_check(input_ptr)
+        elif action_symbol == "#INDEXING":
+            self.indexing()
         else:
             pass
 
