@@ -3,7 +3,7 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-from scanner import SymbolType
+from scanner import format_type, SymbolType
 
 
 class SemanticAnalyzer:
@@ -37,20 +37,6 @@ class SemanticAnalyzer:
 
         self.type_check_active = False
         self.type_to_check = None
-
-    def format_type(self, type):
-        if type == SymbolType.FUNCTION_INT:
-            return "int"
-        elif type == SymbolType.FUNCTION_VOID:
-            return "void"
-        elif type in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
-            return "array"
-        elif type == SymbolType.INT:
-            return "int"
-        elif type == SymbolType.VOID:
-            return "void"
-        else:
-            return "unknown"
 
     def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
@@ -175,8 +161,8 @@ class SemanticAnalyzer:
                     actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
                         arg[1])]["type"]
                     if not self.compare_types(expected_type, actual_type):
-                        expected_type = self.format_type(expected_type)
-                        actual_type = self.format_type(actual_type)
+                        expected_type = format_type(expected_type)
+                        actual_type = format_type(actual_type)
                         msg = (
                             f"Mismatch in type of argument {i + 1} of '{func_name}'. "
                             f"Expected '{expected_type}' but "
@@ -240,8 +226,8 @@ class SemanticAnalyzer:
                 input_type = SymbolType.INT
 
             if input_type and not self.compare_types(self.type_to_check, input_type):
-                input_type = self.format_type(input_type)
-                expected_type = self.format_type(self.type_to_check)
+                input_type = format_type(input_type)
+                expected_type = format_type(self.type_to_check)
                 msg = (
                     f"Type mismatch in operands, Got {input_type} "
                     f"instead of {expected_type}."
@@ -259,7 +245,7 @@ class SemanticAnalyzer:
             self.report_error(
                 lineno,
                 (
-                    f"Illegal type of {self.format_type(self.symbol_table[-1]['type'])} "
+                    f"Illegal type of {format_type(self.symbol_table[-1]['type'])} "
                     f"for '{self.symbol_table[-1]['name']}'."
                 )
             )

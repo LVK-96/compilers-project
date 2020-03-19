@@ -3,7 +3,25 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
+
 from enum import Enum
+
+
+def format_type(type):
+    if type == SymbolType.FUNCTION_INT:
+        return "int"
+    elif type == SymbolType.FUNCTION_VOID:
+        return "void"
+    elif type in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
+        return "array"
+    elif type == SymbolType.INT:
+        return "int"
+    elif type == SymbolType.VOID:
+        return "void"
+    elif type == SymbolType.KEYWORD:
+        return "keyword"
+    else:
+        return "unknown"
 
 
 class SymbolType(Enum):
@@ -303,7 +321,7 @@ class Scanner:
         with open("symbol_table.txt", "w") as f:
             for i, item in enumerate(self.symbol_table):
                 name = item["name"]
-                typeof = item["type"]
+                typeof = format_type(item["type"])
                 f.write(f"{i + 1}. {name} {typeof}\n")
 
             f.close()
