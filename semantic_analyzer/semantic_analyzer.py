@@ -220,7 +220,7 @@ class SemanticAnalyzer:
         self.type_check_active = True
         self.type_check_stack.append([])
 
-    def type_check(self, lineno, input_ptr):
+    def type_check(self, lineno, input_ptr, in_brackets=False):
         if self.type_check_active:
             for i in range(len(self.type_check_stack[-1])):
                 elem0 = self.type_check_stack[-1][i] if i < len(self.type_check_stack[-1]) else None
@@ -243,9 +243,13 @@ class SemanticAnalyzer:
                         )
                         self.report_error(lineno, msg)
 
-        self.type_check_stack.pop()
+        popped = self.type_check_stack.pop()
         if len(self.type_check_stack) < 1:
             self.type_check_active = False
+        elif in_brackets:
+            to_append = popped[0] if popped != [] else None
+            if to_append:
+                self.type_check_stack[-1].append(to_append)
 
     def add_to_type_check(self, input_ptr):
         if self.type_check_active:
@@ -426,6 +430,8 @@ class SemanticAnalyzer:
             self.start_type_check(input_ptr)
         elif action_symbol == "#TYPE_CHECK":
             self.type_check(lineno, input_ptr)
+        elif action_symbol == "#TYPE_CHECK_IN_BRACKETS":
+            self.type_check(lineno, input_ptr, in_brackets=True)
         elif action_symbol == "#ADD_TO_TYPE_CHECK":
             self.add_to_type_check(input_ptr)
         elif action_symbol == "#INDEXING":

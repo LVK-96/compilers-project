@@ -14,12 +14,12 @@ Param-prime -> #ARRAY #ARRAY_PARAM [ ] | #PARAM EPSILON
 Compound-stmt -> { Declaration-list Statement-list #ENDSCOPE }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | #BEGINSCOPE Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
-Expression-stmt -> #START_TYPE_CHECK Expression #TYPE_CHECK ; | #CONTINUE continue ; | #BREAK break ; | ;
-Selection-stmt -> if ( #START_TYPE_CHECK Expression #TYPE_CHECK ) Statement else Statement
-Iteration-stmt -> while #ENTER_WHILE ( #START_TYPE_CHECK Expression #TYPE_CHECK ) Statement #EXIT_WHILE
+Expression-stmt -> #START_TYPE_CHECK Expression #TYPE_CHECK ; | #CONTINUE continue ; | #BREAK break ; | #TYPE_CHECK ;
+Selection-stmt -> if ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) Statement else Statement
+Iteration-stmt -> while #ENTER_WHILE ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) Statement #EXIT_WHILE
 Return-stmt -> return Return-stmt-prime
 Return-stmt-prime -> ; | #START_TYPE_CHECK Expression #TYPE_CHECK ;
-Switch-stmt -> switch #ENTER_SWITCH_CASE ( #START_TYPE_CHECK Expression #TYPE_CHECK ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
+Switch-stmt -> switch #ENTER_SWITCH_CASE ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
@@ -39,11 +39,11 @@ Term -> Factor G
 Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
-Factor -> ( #START_TYPE_CHECK Expression #TYPE_CHECK ) | #USE_PID #ADD_TO_TYPE_CHECK ID Var-call-prime | #ADD_TO_TYPE_CHECK NUM
+Factor -> ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) | #USE_PID #ADD_TO_TYPE_CHECK ID Var-call-prime | #ADD_TO_TYPE_CHECK NUM
 Var-call-prime -> #FUNCTION_CALL ( #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL Var-prime
 Var-prime -> [ #INDEXING #START_TYPE_CHECK Expression #TYPE_CHECK ] | EPSILON
 Factor-prime -> #FUNCTION_CALL ( #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL EPSILON
-Factor-zegond -> ( #START_TYPE_CHECK Expression #TYPE_CHECK ) | #ADD_TO_TYPE_CHECK NUM
+Factor-zegond -> ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) | #ADD_TO_TYPE_CHECK NUM
 Args -> Arg-list | EPSILON
 Arg-list -> #ARGUMENT #START_TYPE_CHECK Expression #TYPE_CHECK Arg-list-prime
 Arg-list-prime -> , #ARGUMENT #START_TYPE_CHECK Expression #TYPE_CHECK Arg-list-prime | EPSILON
