@@ -9,9 +9,9 @@ from enum import Enum
 
 def format_type(type):
     if type == SymbolType.FUNCTION_INT:
-        return "int"
+        return "function int"
     elif type == SymbolType.FUNCTION_VOID:
-        return "void"
+        return "function void"
     elif type in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
         return "array"
     elif type == SymbolType.INT:

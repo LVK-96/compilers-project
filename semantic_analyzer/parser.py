@@ -96,16 +96,17 @@ class LL1_parser:
     def remove_node(self, name):
         # Used in error handling to remove all nonterminals of a node
         orig_node = self.current_node
-        while True:
+        while True and self.current_node:
             self.current_node = self.current_node.parent
-            found = False
-            for child in self.current_node.children:
-                if not child.children and child.name == name:
-                    child.parent = None
-                    found = True
+            if self.current_node:
+                found = False
+                for child in self.current_node.children:
+                    if not child.children and child.name == name:
+                        child.parent = None
+                        found = True
+                        break
+                if found:
                     break
-            if found:
-                break
 
         # Reset current node to where it was before
         self.current_node = orig_node

@@ -66,18 +66,12 @@ class SemanticAnalyzer:
 
         return None
 
-    def compare_types(self, a, b):
-        if a == b:
+    def compare_types(self, lhs, rhs):
+        if lhs == rhs:
             return True
-        elif (
-            (a == SymbolType.FUNCTION_INT and b == SymbolType.INT)
-            or (a == SymbolType.INT and b == SymbolType.FUNCTION_INT)
-        ):
+        elif lhs == SymbolType.INT and rhs == SymbolType.FUNCTION_INT:
             return True
-        elif (
-            (a == SymbolType.FUNCTION_VOID and b == SymbolType.VOID)
-            or (a == SymbolType.VOID and b == SymbolType.FUNCTION_VOID)
-        ):
+        elif lhs == SymbolType.VOID and rhs == SymbolType.FUNCTION_VOID:
             return True
         else:
             return False
