@@ -290,22 +290,33 @@ class SemanticAnalyzer:
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
-        idx = self.get_index(current, upper_limit=self.scope_stack[-1])
-        if idx is not None:
-            # Found in upper scope -> scanner added a false entry
+        idx_upper = self.get_index(current, upper_limit=self.scope_stack[-1])  # Only global scope
+        idx_local = self.get_index(current)  # Local scope
+
+        local_symbol = None
+        if idx_local is not None:
+            local_symbol = self.symbol_table[idx_local]
+
+        if idx_upper is not None and local_symbol and local_symbol["type"] is None:
+            # Found only in upper scope
             # Pop false entry added by scanner
-            table_entry = self.symbol_table[idx]
             self.symbol_table.pop()
 
-        if idx is None:
-            # Not found in upper scope, search local scope
-            idx = self.get_index(current)
-            table_entry = self.symbol_table[idx]
+        elif local_symbol and local_symbol["type"] is not None:
+            # Found in local scope and upper scope
+            # local scope takes precedence
+            #        OR
+            # Found only in local scope
+            #
+            # No false entry added
+            pass
 
-        if not table_entry["type"] and idx is not None:
+        else:
+            # Not found at all
             if current != "output":
                 self.report_error(lineno, f"'{current}' is not defined.")
-                del self.symbol_table[idx]
+            # Pop false entry added by scanner
+            self.symbol_table.pop()
 
     def beginscope(self):
         # Add function ID to scope stack

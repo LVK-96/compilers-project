@@ -23,7 +23,7 @@ Switch-stmt -> switch #ENTER_SWITCH_CASE ( Expression ) { Case-stmts Default-stm
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
-Expression -> Simple-expression-zegond | #USE_PID #START_ARGUMENT_COUNTER #TYPE_CHECK #START_TYPE_CHECK ID B
+Expression -> Simple-expression-zegond | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID B
 B -> = Expression | #CANCEL_TYPE_CHECK [ Expression ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
@@ -39,10 +39,10 @@ Term -> Factor G
 Term-prime -> Factor-prime G
 Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
-Factor -> ( Expression ) | #USE_PID #START_ARGUMENT_COUNTER #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
-Var-call-prime -> ( #CANCEL_TYPE_CHECK Args #STOP_ARGUMENT_COUNTER ) | Var-prime
+Factor -> ( Expression ) | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
+Var-call-prime -> ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | Var-prime
 Var-prime -> [ #CANCEL_TYPE_CHECK Expression ] | EPSILON
-Factor-prime -> ( #CANCEL_TYPE_CHECK Args #STOP_ARGUMENT_COUNTER ) | EPSILON
+Factor-prime -> ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | EPSILON
 Factor-zegond -> ( Expression ) | #TYPE_CHECK NUM
 Args -> Arg-list | EPSILON
 Arg-list -> #ARGUMENT Expression Arg-list-prime
