@@ -235,6 +235,12 @@ class SemanticAnalyzer:
                         self.report_error(lineno, msg)
 
                     elif correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
+                        if correct_type0 == SymbolType.FUNCTION_INT:
+                            correct_type0 = SymbolType.INT
+
+                        if correct_type0 == SymbolType.FUNCTION_VOID:
+                            correct_type0 = SymbolType.VOID
+
                         lhs = format_type(correct_type0)
                         rhs = format_type(correct_type1)
                         msg = (
