@@ -205,11 +205,8 @@ class SemanticAnalyzer:
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
-        print("start type check")
         idx = self.get_index(input_ptr[1])
-        print("input: ", input_ptr)
         if idx is not None:
-            print("set active")
             self.type_to_check = self.symbol_table[idx]["type"]
             self.type_check_active = True
         else:
@@ -217,15 +214,11 @@ class SemanticAnalyzer:
             self.type_check_active = False
 
     def cancel_type_check(self):
-        print("cancel type check")
         self.type_to_check = None
         self.type_check_active = False
 
     def type_check(self, lineno, input_ptr):
-        print("type check")
-        print(self.type_check_active)
         if self.type_check_active:
-            print("active")
             input_type = None
             if input_ptr[0] == "ID":
                 idx = self.get_index(input_ptr[1])
@@ -240,7 +233,6 @@ class SemanticAnalyzer:
             self.previous_type_check = {}
             self.previous_type_check["lhs"] = self.type_to_check
             self.previous_type_check["rhs"] = input_type
-            print("previous type check")
             if input_type and not self.compare_types(self.type_to_check, input_type):
                 input_type = format_type(input_type)
                 expected_type = format_type(self.type_to_check)
@@ -371,7 +363,6 @@ class SemanticAnalyzer:
         self.possible_function_call = None
 
     def indexing(self, lineno):
-        print("indexing")
         if self.argument_counter_active:
             #function call
             latest_argument = self.argument_counter[-1].pop()
@@ -407,8 +398,6 @@ class SemanticAnalyzer:
 
                 self.previous_type_check = None
             else:
-                print("lhs")
-                print(self.type_check_active)
                 # This means array is in self.type_to_check
                 if self.type_to_check == SymbolType.ARRAY_INT:
                     self.type_to_check = SymbolType.INT
