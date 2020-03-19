@@ -9,6 +9,6 @@ do
     echo "${case}:"
     python parser.py "${input}"
     echo "Semantic errors"
-    diff -i -B -Z --color=always "semantic_errors.txt" "${semantic_errors}"
+    diff -i -B -Z -s -c "semantic_errors.txt" "${semantic_errors}"
     echo ""
 done
