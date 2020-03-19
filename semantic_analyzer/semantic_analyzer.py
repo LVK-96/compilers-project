@@ -39,10 +39,6 @@ class SemanticAnalyzer:
         self.type_check_active = False
         self.type_to_check = None
 
-        # Previous error types needed to fix error if it was falsely detected
-        # needed to make array indexing work
-        self.previous_type_check = None
-
     def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
             r = min(upper_limit, len(self.symbol_table))
@@ -230,9 +226,12 @@ class SemanticAnalyzer:
             elif input_ptr[0] == "NUM":
                 input_type = SymbolType.INT
 
+<<<<<<< HEAD
             self.previous_type_check = {}
             self.previous_type_check["lhs"] = self.type_to_check
             self.previous_type_check["rhs"] = input_type
+=======
+>>>>>>> d0e9b44b3eb36e8f59e13c73654341c8e07d9961
             if input_type and not self.compare_types(self.type_to_check, input_type):
                 input_type = format_type(input_type)
                 expected_type = format_type(self.type_to_check)
@@ -362,6 +361,7 @@ class SemanticAnalyzer:
     def not_function_call(self):
         self.possible_function_call = None
 
+<<<<<<< HEAD
     def indexing(self, lineno):
         if self.argument_counter_active:
             #function call
@@ -404,13 +404,13 @@ class SemanticAnalyzer:
                 elif self.type_to_check == SymbolType.ARRAY_VOID:
                     self.type_to_check = SymbolType.VOID
 
+=======
+>>>>>>> d0e9b44b3eb36e8f59e13c73654341c8e07d9961
     def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if action_symbol == "#PID":
             self.pid(input_ptr, latest_type, lineno)
         if action_symbol == "#USE_PID":
             self.use_pid(input_ptr, lineno)
-        if action_symbol == "#INDEXING":
-            self.indexing(lineno)
         if action_symbol == "#FUNCTION_CALL":
             self.function_call()
         elif action_symbol == "#NOT_FUNCTION_CALL":
