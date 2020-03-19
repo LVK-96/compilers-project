@@ -11,8 +11,9 @@ class SymbolType(Enum):
     FUNCTION_INT = 2
     FUNCTION_VOID = 3
     ARRAY_INT = 4
-    INT = 5
-    VOID = 6
+    ARRAY_VOID = 5
+    INT = 6
+    VOID = 7
 
 
 class Scanner:

@@ -43,12 +43,14 @@ class SemanticAnalyzer:
             return "int"
         elif type == SymbolType.FUNCTION_VOID:
             return "void"
-        elif type == SymbolType.ARRAY_INT:
+        elif type in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
             return "array"
         elif type == SymbolType.INT:
             return "int"
         elif type == SymbolType.VOID:
             return "void"
+        else:
+            return "unknown"
 
     def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
@@ -75,13 +77,7 @@ class SemanticAnalyzer:
             ):
                 return i
 
-    def get_function_index(self, name):
-        for i in reversed(range(len(self.symbol_table))):
-            if (
-                self.symbol_table[i]["name"] == name
-                and self.symbol_table[i]["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
-            ):
-                return i
+        return None
 
     def compare_types(self, a, b):
         if a == b:
@@ -98,9 +94,6 @@ class SemanticAnalyzer:
             return True
         else:
             return False
-
-    def get_symbol_table_head(self):
-        return self.symbol_table[-1]
 
     def report_error(self, lineno, msg):
         error_msg = f"#{lineno} : Semantic Error! {msg}"
@@ -126,16 +119,12 @@ class SemanticAnalyzer:
         self.param_counter = []
 
     def stop_param_counter(self):
-        latest_func = None
-        for item in self.symbol_table[::-1]:
+        for i, item in enumerate(self.symbol_table[::-1]):
             if item["type"] in [
                     SymbolType.FUNCTION_VOID,
                     SymbolType.FUNCTION_INT]:
-                latest_func = item["name"]
+                self.symbol_table[len(self.symbol_table) - 1 - i]["params"] = self.param_counter
                 break
-
-        if latest_func:
-            self.symbol_table[self.get_index(latest_func, wanted_type="function")]["params"] = self.param_counter
 
         self.param_counter_active = False
 
@@ -145,25 +134,20 @@ class SemanticAnalyzer:
 
     def array_param(self, latest_type):
         if self.param_counter_active:
-            # Just always add array int, array of void is illegal
-            # so even if it somewho gets through to this point
-            # we still want an array of ints as the type
-            self.param_counter.append(SymbolType.ARRAY_INT)
+            if latest_type == SymbolType.INT:
+                self.param_counter.append(SymbolType.ARRAY_INT)
+            elif latest_type == SymbolType.VOID:
+                self.param_counter.append(SymbolType.ARRAY_VOID)
+            else:
+                self.param_counter.append(None)
 
     def start_argument_counter(self, input_ptr):
-        try:
-            if (
-                self.symbol_table[self.get_index(input_ptr[1], wanted_type="function")]["type"]
-                in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]
-            ):
-                # found a function definition
-                self.argument_counter_active = True
-                self.function_call_stack.append(input_ptr[1])
-                self.argument_counter.append([])
-
-        except TypeError:
-            # not a function call
-            pass
+        idx = self.get_index(input_ptr[1], wanted_type="function")
+        if idx is not None and self.symbol_table[idx]["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
+            # found a function definition
+            self.argument_counter_active = True
+            self.function_call_stack.append(input_ptr[1])
+            self.argument_counter.append([])
 
     def stop_argument_counter(self, lineno):
         if self.argument_counter_active:
@@ -175,27 +159,33 @@ class SemanticAnalyzer:
             if len(self.argument_counter) == 0 and len(self.function_call_stack) == 0:
                 self.argument_counter_active = False
 
-            func_params = self.symbol_table[self.get_index(func_name, wanted_type="function")]["params"]
-            n_of_params = len(func_params)
-            if n_of_params != len(given_args):
-                msg = f"Mismatch in numbers of arguments of '{func_name}'."
-                self.report_error(lineno, msg)
-
-            for i, arg in enumerate(given_args):
-                if i >= n_of_params:
-                    break
-
-                expected_type = func_params[i]
-                actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(arg[1])]["type"]
-                if not self.compare_types(expected_type, actual_type):
-                    expected_type = self.format_type(expected_type)
-                    actual_type = self.format_type(actual_type)
-                    msg = (
-                        f"Mismatch in type of argument {i + 1} of '{func_name}'. "
-                        f"Expected '{expected_type}' but "
-                        f"got '{actual_type}' instead."
-                    )
+            idx = self.get_index(func_name, wanted_type="function")
+            if idx is not None:
+                func_params = self.symbol_table[idx]["params"]
+                n_of_params = len(func_params)
+                if n_of_params != len(given_args):
+                    msg = f"Mismatch in numbers of arguments of '{func_name}'."
                     self.report_error(lineno, msg)
+
+                for i, arg in enumerate(given_args):
+                    if i >= n_of_params:
+                        break
+
+                    expected_type = func_params[i]
+                    actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
+                        arg[1])]["type"]
+                    if not self.compare_types(expected_type, actual_type):
+                        expected_type = self.format_type(expected_type)
+                        actual_type = self.format_type(actual_type)
+                        msg = (
+                            f"Mismatch in type of argument {i + 1} of '{func_name}'. "
+                            f"Expected '{expected_type}' but "
+                            f"got '{actual_type}' instead."
+                        )
+                        self.report_error(lineno, msg)
+            else:
+                # Function not found from table
+                self.report_error(lineno, f"'{func_name}' is not defined.")
 
     def argument(self, input_ptr):
         if self.argument_counter_active:
@@ -224,11 +214,11 @@ class SemanticAnalyzer:
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
-        try:
-            self.type_to_check = self.symbol_table[self.get_index(
-                input_ptr[1])]["type"]
+        idx = self.get_index(input_ptr[1])
+        if idx is not None:
+            self.type_to_check = self.symbol_table[idx]["type"]
             self.type_check_active = True
-        except TypeError:
+        else:
             self.type_to_check = None
             self.type_check_active = False
 
@@ -241,7 +231,7 @@ class SemanticAnalyzer:
             input_type = None
             if input_ptr[0] == "ID":
                 idx = self.get_index(input_ptr[1])
-                if idx:
+                if idx is not None:
                     input_type = self.symbol_table[idx]["type"]
                 else:
                     self.report_error(lineno, f"'{input_ptr[1]}' is not defined.")
@@ -264,67 +254,40 @@ class SemanticAnalyzer:
     def variable(self, lineno):
         # input pointer not in id anymore, but it is the most recent addition
         # to symbol table
-        current = self.get_symbol_table_head()["name"]
-        try:
-            symbol = self.symbol_table[self.get_index(current, wanted_type="variable")]
-            if (symbol["type"] == SymbolType.INT):
-                # okay
-                pass
-            elif (symbol["type"] == SymbolType.VOID):
-                self.report_error(
-                    lineno, f"Illegal type of void for '{current}'.")
-            else:
-                # Variable not declared or not in scope - already reported by #pid
-                # remove from symbol table?
-                self.report_error(lineno, f"'{current}' is not defined.")
-
-        except KeyError:
-            # Variable not declared or not in scope - should never happen
-            self.report_error(lineno, f"'{current}' is not defined.")
+        if self.symbol_table[-1]["type"] != SymbolType.INT:
+            # int is the only legal type
+            self.report_error(
+                lineno,
+                (
+                    f"Illegal type of {self.format_type(self.symbol_table[-1]['type'])} "
+                    f"for '{self.symbol_table[-1]['name']}'."
+                )
+            )
 
     # Mark symbol as a function
     def function(self, lineno):
-        # ToDo: check that there is a valid function and we arent mistaking a variable - is this only for function declarations - what about function calls
         # input pointer not in id anymore, but it is the most recent addition
         # to symbol table
-        current = self.get_symbol_table_head()["name"]
-        try:
-            symbol = self.symbol_table[self.get_index(current)]
-            if (symbol["type"] == SymbolType.INT):
-                self.symbol_table[self.get_index(
-                    current)]["type"] = SymbolType.FUNCTION_INT
-            elif (symbol["type"] == SymbolType.VOID):
-                self.symbol_table[self.get_index(
-                    current)]["type"] = SymbolType.FUNCTION_VOID
-            else:
-                # function return type not declared properly - already reported by pid
-                # remove from symbol table
-                self.report_error(lineno, f"'{current}' is not defined.")
-
-        except KeyError:
-            # Function not declared or not in scope - should never happen
-            self.report_error(lineno, f"'{current}' is not defined.")
+        if (self.symbol_table[-1]["type"] == SymbolType.INT):
+            self.symbol_table[-1]["type"] = SymbolType.FUNCTION_INT
+        elif (self.symbol_table[-1]["type"] == SymbolType.VOID):
+            self.symbol_table[-1]["type"] = SymbolType.FUNCTION_VOID
+        else:
+            # function return type not declared properly - already reported by pid
+            self.symbol_table[-1]["type"] = None
 
     def array(self, lineno):
-        current = self.get_symbol_table_head()["name"]
-        try:
-            symbol = self.symbol_table[self.get_index(current)]
-            if (symbol["type"] == SymbolType.INT):
-                self.symbol_table[self.get_index(
-                    current)]["type"] = SymbolType.ARRAY_INT
-            elif (symbol["type"] == SymbolType.VOID):
-                self.report_error(
-                    lineno, f"Illegal type of void for array '{current}'.")
-            else:
-                self.report_error(lineno, f"'{current}' is not defined.")
-
-        except KeyError:
-            self.report_error(lineno, f"'{current}' is not defined.")
+        if (self.symbol_table[-1]["type"] == SymbolType.INT):
+            self.symbol_table[-1]["type"] = SymbolType.ARRAY_INT
+        elif (self.symbol_table[-1]["type"] == SymbolType.VOID):
+            self.symbol_table[-1]["type"] = SymbolType.ARRAY_VOID
+        else:
+            self.symbol_table[-1]["type"] = None
 
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
-        try:
-            idx = self.get_index(current)
+        idx = self.get_index(current)
+        if idx is not None:
             symbol = self.symbol_table[idx]
             if(symbol["type"] is None):
                 # ID is being declared
@@ -334,26 +297,25 @@ class SemanticAnalyzer:
                 elif latest_type == SymbolType.VOID:
                     self.symbol_table[self.get_index(
                         current)]["type"] = SymbolType.VOID
-
-        except TypeError:
+        else:
             # ID not declared or not in scope - this should never be reached
             self.report_error(lineno, f"'{current}' is not defined.")
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
         idx = self.get_index(current, upper_limit=self.scope_stack[-1])
-        if idx:
+        if idx is not None:
             # Found in upper scope -> scanner added a false entry
             # Pop false entry added by scanner
             table_entry = self.symbol_table[idx]
             self.symbol_table.pop()
 
-        if not idx:
+        if idx is None:
             # Not found in upper scope, search local scope
             idx = self.get_index(current)
             table_entry = self.symbol_table[idx]
 
-        if not table_entry["type"]:
+        if not table_entry["type"] and idx is not None:
             if current != "output":
                 self.report_error(lineno, f"'{current}' is not defined.")
                 del self.symbol_table[idx]

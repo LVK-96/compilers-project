@@ -315,8 +315,6 @@ class LL1_parser:
                     SymbolType.INT if self.input_ptr[to_compare] == "int"
                     else SymbolType.VOID
                 )
-            else:
-                self.latest_type = None
             popped = self.stack.pop()
             if(popped != '$'):
                 self.add_nodes(popped, [], self.input_ptr)
