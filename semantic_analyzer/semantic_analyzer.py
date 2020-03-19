@@ -230,7 +230,11 @@ class SemanticAnalyzer:
                     correct_type0 = self.get_correct_type(elem0)
                     correct_type1 = self.get_correct_type(elem1)
 
-                    if correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
+                    if correct_type0 and correct_type0 in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
+                        msg = f"Illegal operation for type array"
+                        self.report_error(lineno, msg)
+
+                    elif correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
                         lhs = format_type(correct_type0)
                         rhs = format_type(correct_type1)
                         msg = (
