@@ -72,7 +72,7 @@ class SemanticAnalyzer:
             ):
                 return i
             elif (
-                not wanted_type
+                len(wanted_types) == 0
                 and self.symbol_table[i]["name"] == name
             ):
                 return i
