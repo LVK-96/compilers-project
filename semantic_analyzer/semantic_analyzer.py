@@ -129,12 +129,15 @@ class SemanticAnalyzer:
                 self.param_counter.append(None)
 
     def start_argument_counter(self, input_ptr):
-        idx = self.get_index(input_ptr[1], wanted_type="function")
-        if idx is not None and self.symbol_table[idx]["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
-            # found a function definition
-            self.argument_counter_active = True
-            self.function_call_stack.append(input_ptr[1])
-            self.argument_counter.append([])
+        if len(self.function_call_stack) > 0:
+            # A function was called
+            idx = self.get_index(self.function_call_stack[-1], upper_limit=len(self.symbol_table) - 1)
+            if idx is not None:
+                found_symbol = self.symbol_table[idx]
+                if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
+                    # found a function definition
+                    self.argument_counter_active = True
+                    self.argument_counter.append([])
 
     def stop_argument_counter(self, lineno):
         if self.argument_counter_active:
@@ -146,30 +149,32 @@ class SemanticAnalyzer:
             if len(self.argument_counter) == 0 and len(self.function_call_stack) == 0:
                 self.argument_counter_active = False
 
-            idx = self.get_index(func_name, wanted_type="function")
+            idx = self.get_index(func_name)
             if idx is not None:
-                func_params = self.symbol_table[idx]["params"]
-                n_of_params = len(func_params)
-                if n_of_params != len(given_args):
-                    msg = f"Mismatch in numbers of arguments of '{func_name}'."
-                    self.report_error(lineno, msg)
-
-                for i, arg in enumerate(given_args):
-                    if i >= n_of_params:
-                        break
-
-                    expected_type = func_params[i]
-                    actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
-                        arg[1])]["type"]
-                    if not self.compare_types(expected_type, actual_type):
-                        expected_type = format_type(expected_type)
-                        actual_type = format_type(actual_type)
-                        msg = (
-                            f"Mismatch in type of argument {i + 1} of '{func_name}'. "
-                            f"Expected '{expected_type}' but "
-                            f"got '{actual_type}' instead."
-                        )
+                found_symbol = self.symbol_table[idx]
+                if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
+                    func_params = self.symbol_table[idx]["params"]
+                    n_of_params = len(func_params)
+                    if n_of_params != len(given_args):
+                        msg = f"Mismatch in numbers of arguments of '{func_name}'."
                         self.report_error(lineno, msg)
+
+                    for i, arg in enumerate(given_args):
+                        if i >= n_of_params:
+                            break
+
+                        expected_type = func_params[i]
+                        actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
+                            arg[1])]["type"]
+                        if not self.compare_types(expected_type, actual_type):
+                            expected_type = format_type(expected_type)
+                            actual_type = format_type(actual_type)
+                            msg = (
+                                f"Mismatch in type of argument {i + 1} of '{func_name}'. "
+                                f"Expected '{expected_type}' but "
+                                f"got '{actual_type}' instead."
+                            )
+                            self.report_error(lineno, msg)
             else:
                 # Function not found from table
                 self.report_error(lineno, f"'{func_name}' is not defined.")
@@ -293,14 +298,21 @@ class SemanticAnalyzer:
         idx_upper = self.get_index(current, upper_limit=self.scope_stack[-1])  # Only global scope
         idx_local = self.get_index(current)  # Local scope
 
+        upper_symbol = None
+        if idx_upper is not None:
+            upper_symbol = self.symbol_table[idx_upper]
+
         local_symbol = None
         if idx_local is not None:
             local_symbol = self.symbol_table[idx_local]
 
-        if idx_upper is not None and local_symbol and local_symbol["type"] is None:
+        correct_symbol = None
+
+        if upper_symbol and local_symbol and local_symbol["type"] is None:
             # Found only in upper scope
             # Pop false entry added by scanner
             self.symbol_table.pop()
+            correct_symbol = upper_symbol
 
         elif local_symbol and local_symbol["type"] is not None:
             # Found in local scope and upper scope
@@ -309,14 +321,19 @@ class SemanticAnalyzer:
             # Found only in local scope
             #
             # No false entry added
-            pass
+            correct_symbol = local_symbol
 
-        else:
+        elif not correct_symbol:
             # Not found at all
             if current != "output":
                 self.report_error(lineno, f"'{current}' is not defined.")
             # Pop false entry added by scanner
             self.symbol_table.pop()
+
+        if correct_symbol:
+            # Check if found symbol is a function and add to call stack
+            if correct_symbol["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
+                self.function_call_stack.append(correct_symbol["name"])
 
     def beginscope(self):
         # Add function ID to scope stack
