@@ -24,7 +24,7 @@ Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case NUM : Statement-list
 Default-stmt -> default : Statement-list | EPSILON
 Expression -> Simple-expression-zegond | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID B
-B -> #NOT_FUNCTION_CALL = Expression | #NOT_FUNCTION_CALL #INDEXING #CANCEL_TYPE_CHECK [ Expression ] H | Simple-expression-prime
+B -> #NOT_FUNCTION_CALL = Expression | #NOT_FUNCTION_CALL #CANCEL_TYPE_CHECK [ Expression ] H | Simple-expression-prime
 H -> = Expression | G D C
 Simple-expression-zegond -> Additive-expression-zegond C
 Simple-expression-prime -> Additive-expression-prime C
@@ -41,7 +41,7 @@ Term-zegond -> Factor-zegond G
 G -> * Factor G | EPSILON
 Factor -> ( Expression ) | #USE_PID #TYPE_CHECK #START_TYPE_CHECK ID Var-call-prime | #TYPE_CHECK NUM
 Var-call-prime -> #FUNCTION_CALL ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL Var-prime
-Var-prime -> #INDEXING [ #CANCEL_TYPE_CHECK Expression ] | EPSILON
+Var-prime -> [ #CANCEL_TYPE_CHECK Expression ] | EPSILON
 Factor-prime -> #FUNCTION_CALL ( #CANCEL_TYPE_CHECK #START_ARGUMENT_COUNTER Args #STOP_ARGUMENT_COUNTER ) | #NOT_FUNCTION_CALL EPSILON
 Factor-zegond -> ( Expression ) | #TYPE_CHECK NUM
 Args -> Arg-list | EPSILON
