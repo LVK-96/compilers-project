@@ -2,7 +2,6 @@
 Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
-
 from scanner import format_type, SymbolType
 
 
@@ -45,10 +44,15 @@ class SemanticAnalyzer:
         if idx is not None:
             symbol = self.symbol_table[idx]
             correct_type = symbol["type"]
-            if elem[1]:
+            if elem[1] == 1:
                 if symbol["type"] == SymbolType.ARRAY_INT:
                     correct_type = SymbolType.INT
                 elif symbol["type"] == SymbolType.ARRAY_VOID:
+                    correct_type = SymbolType.VOID
+            if elem[1] == 2:
+                if symbol["type"] == SymbolType.FUNCTION_INT:
+                    correct_type = SymbolType.INT
+                elif symbol["type"] == SymbolType.FUNCTION_VOID:
                     correct_type = SymbolType.VOID
         elif elem[0].isnumeric():
             correct_type = SymbolType.INT
@@ -381,6 +385,8 @@ class SemanticAnalyzer:
                 called_func = self.symbol_table[idx]
                 if called_func["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
                     self.function_call_stack.append(called_func["name"])
+                if self.type_check_active:
+                    self.type_check_stack[-1][-1]= (self.type_check_stack[-1][-1][0], 2)
 
     def not_function_call(self):
         self.possible_function_call = None
