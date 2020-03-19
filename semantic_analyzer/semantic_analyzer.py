@@ -21,6 +21,7 @@ class SemanticAnalyzer:
         # Head is the active function
         # Pop head in #STOP_ARGUMENT_COUNTER
         self.argument_counter_active = False
+        self.possible_function_call = None
         self.function_call_stack = []
         self.argument_counter = []
         self.errors = []
@@ -331,9 +332,8 @@ class SemanticAnalyzer:
             self.symbol_table.pop()
 
         if correct_symbol:
-            # Check if found symbol is a function and add to call stack
             if correct_symbol["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
-                self.function_call_stack.append(correct_symbol["name"])
+                self.possible_function_call = correct_symbol["name"]
 
     def beginscope(self):
         # Add function ID to scope stack
@@ -349,11 +349,28 @@ class SemanticAnalyzer:
         for key in to_be_removed:
             self.symbol_table.pop()
 
+    def function_call(self):
+        if self.possible_function_call:
+            idx = self.get_index(self.possible_function_call, upper_limit=len(self.symbol_table) - 1)
+            self.possible_function_call = None
+            if idx is not None:
+                # Check if found symbol is a function and add to call stack
+                called_func = self.symbol_table[idx]
+                if called_func["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
+                    self.function_call_stack.append(called_func["name"])
+
+    def not_function_call(self):
+        self.possible_function_call = None
+
     def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if action_symbol == "#PID":
             self.pid(input_ptr, latest_type, lineno)
         if action_symbol == "#USE_PID":
             self.use_pid(input_ptr, lineno)
+        if action_symbol == "#FUNCTION_CALL":
+            self.function_call()
+        elif action_symbol == "#NOT_FUNCTION_CALL":
+            self.not_function_call()
         elif action_symbol == "#VARIABLE":
             self.variable(lineno)
         elif action_symbol == "#FUNCTION":

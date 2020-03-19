@@ -288,7 +288,7 @@ class LL1_parser:
 
 
 def main(argv):
-    filename = "samples/T3/input.txt"
+    filename = "input.txt"
     if len(argv) > 0:
         filename = argv[0]
     with open(filename) as f:
