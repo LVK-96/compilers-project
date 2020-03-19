@@ -105,14 +105,15 @@ class SemanticAnalyzer:
         self.param_counter = []
 
     def stop_param_counter(self):
-        for i, item in enumerate(self.symbol_table[::-1]):
-            if item["type"] in [
-                    SymbolType.FUNCTION_VOID,
-                    SymbolType.FUNCTION_INT]:
-                self.symbol_table[len(self.symbol_table) - 1 - i]["params"] = self.param_counter
-                break
-
-        self.param_counter_active = False
+        if self.param_counter_active:
+            for i, item in enumerate(self.symbol_table[::-1]):
+                if item["type"] in [
+                        SymbolType.FUNCTION_VOID,
+                        SymbolType.FUNCTION_INT]:
+                    self.symbol_table[len(self.symbol_table) - 1 - i]["params"] = self.param_counter
+                    break
+            self.param_counter = []
+            self.param_counter_active = False
 
     def param(self, latest_type):
         if self.param_counter_active:

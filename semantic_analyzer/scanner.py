@@ -322,7 +322,7 @@ class Scanner:
             for i, item in enumerate(self.symbol_table):
                 name = item["name"]
                 typeof = format_type(item["type"])
-                f.write(f"{i + 1}. {name} {typeof}\n")
+                f.write(f"{i + 1}. {item} \n")
 
             f.close()
 

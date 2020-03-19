@@ -1,7 +1,7 @@
 Program -> Declaration-list #END
 Declaration-list -> Declaration Declaration-list | EPSILON
 Declaration -> Declaration-initial Declaration-prime
-Declaration-initial -> Type-specifier #PID ID
+Declaration-initial -> Type-specifier #PID #PARAM ID
 Declaration-prime -> #FUNCTION Fun-declaration-prime | #VARIABLE Var-declaration-prime
 Var-declaration-prime -> #PARAM ; | #ARRAY [ NUM ] ;
 Fun-declaration-prime -> #BEGINSCOPE ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt
