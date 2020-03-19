@@ -39,6 +39,22 @@ class SemanticAnalyzer:
         self.type_check_active = False
         self.type_check_stack = []
 
+    def get_correct_type(self, elem):
+        correct_type = None
+        idx = self.get_index(elem[0])
+        if idx is not None:
+            symbol = self.symbol_table[idx]
+            correct_type = symbol["type"]
+            if elem[1]:
+                if symbol["type"] == SymbolType.ARRAY_INT:
+                    correct_type = SymbolType.INT
+                elif symbol["type"] == SymbolType.ARRAY_VOID:
+                    correct_type = SymbolType.VOID
+        elif elem[0].isnumeric():
+            correct_type = SymbolType.INT
+
+        return correct_type
+
     def get_index(self, name, upper_limit=None, wanted_type=None):
         if upper_limit:
             r = min(upper_limit, len(self.symbol_table))
@@ -211,32 +227,8 @@ class SemanticAnalyzer:
                 elem1 = self.type_check_stack[-1][i + 1] if i + 1 < len(self.type_check_stack[-1]) else None
 
                 if elem0 and elem1:
-                    idx0 = self.get_index(elem0[0])
-                    idx1 = self.get_index(elem1[0])
-
-                    correct_type0 = None
-                    if idx0 is not None:
-                        symbol0 = self.symbol_table[idx0]
-                        correct_type0 = symbol0["type"]
-                        if elem0[1]:
-                            if symbol0["type"] == SymbolType.ARRAY_INT:
-                                correct_type0 = SymbolType.INT
-                            elif symbol0["type"] == SymbolType.ARRAY_VOID:
-                                correct_type0 = SymbolType.INT
-                    elif elem0[0].isnumeric():
-                        correct_type0 = SymbolType.INT
-
-                    correct_type1 = None
-                    if idx1 is not None:
-                        symbol1 = self.symbol_table[idx1]
-                        correct_type1 = symbol1["type"]
-                        if elem1[1]:
-                            if symbol1["type"] == SymbolType.ARRAY_INT:
-                                correct_type1 = SymbolType.INT
-                            elif symbol1["type"] == SymbolType.ARRAY_VOID:
-                                correct_type1 = SymbolType.INT
-                    elif elem1[0].isnumeric():
-                        correct_type1 = SymbolType.INT
+                    correct_type0 = self.get_correct_type(elem0)
+                    correct_type1 = self.get_correct_type(elem1)
 
                     if correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
                         lhs = format_type(correct_type0)
