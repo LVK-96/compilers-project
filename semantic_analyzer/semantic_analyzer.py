@@ -163,8 +163,7 @@ class SemanticAnalyzer:
                             break
 
                         expected_type = func_params[i]
-                        actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
-                            arg[1])]["type"]
+                        actual_type = arg
                         if not self.compare_types(expected_type, actual_type):
                             expected_type = format_type(expected_type)
                             actual_type = format_type(actual_type)
@@ -180,7 +179,8 @@ class SemanticAnalyzer:
 
     def argument(self, input_ptr):
         if self.argument_counter_active:
-            self.argument_counter[-1].append(input_ptr)
+            actual_type = SymbolType.INT if input_ptr[0] == 'NUM' else self.symbol_table[self.get_index(input_ptr[1])]["type"]
+            self.argument_counter[-1].append(actual_type)
 
     def enter_while(self):
         self.in_while += 1
@@ -205,8 +205,11 @@ class SemanticAnalyzer:
             self.report_error(lineno, msg)
 
     def start_type_check(self, input_ptr):
+        print("start type check")
         idx = self.get_index(input_ptr[1])
+        print("input: ", input_ptr)
         if idx is not None:
+            print("set active")
             self.type_to_check = self.symbol_table[idx]["type"]
             self.type_check_active = True
         else:
@@ -214,11 +217,15 @@ class SemanticAnalyzer:
             self.type_check_active = False
 
     def cancel_type_check(self):
+        print("cancel type check")
         self.type_to_check = None
         self.type_check_active = False
 
     def type_check(self, lineno, input_ptr):
+        print("type check")
+        print(self.type_check_active)
         if self.type_check_active:
+            print("active")
             input_type = None
             if input_ptr[0] == "ID":
                 idx = self.get_index(input_ptr[1])
@@ -233,7 +240,7 @@ class SemanticAnalyzer:
             self.previous_type_check = {}
             self.previous_type_check["lhs"] = self.type_to_check
             self.previous_type_check["rhs"] = input_type
-
+            print("previous type check")
             if input_type and not self.compare_types(self.type_to_check, input_type):
                 input_type = format_type(input_type)
                 expected_type = format_type(self.type_to_check)
@@ -242,7 +249,6 @@ class SemanticAnalyzer:
                     f"instead of {expected_type}."
                 )
                 self.report_error(lineno, msg)
-
             self.cancel_type_check()
 
     # Check that variable type not void
@@ -365,40 +371,49 @@ class SemanticAnalyzer:
         self.possible_function_call = None
 
     def indexing(self, lineno):
-        if self.previous_type_check:
-            # Array was indexed in the rhs
-            correct_type_rhs = self.previous_type_check["rhs"]
-            if self.previous_type_check["rhs"] == SymbolType.ARRAY_INT:
-                correct_type_rhs = SymbolType.INT
-            elif self.previous_type_check["rhs"] == SymbolType.ARRAY_VOID:
-                correct_type_rhs = SymbolType.VOID
-
-            if self.compare_types(self.previous_type_check["lhs"], correct_type_rhs):
-                # It was a match after all
-                for e in self.errors[::-1]:
-                    if "Semantic Error! Type mismatch in operands" in e:
-                        self.errors.remove(e)
-                        break
-            elif (
-                not self.compare_types(self.previous_type_check["lhs"], correct_type_rhs)
-                and self.compare_types(self.previous_type_check["lhs"], self.previous_type_check["rhs"])
-            ):
-                # There should have been an error add it
-                formatted_lhs = format_type(self.previous_type_check["lhs"])
-                formatted_rhs = format_type(correct_type_rhs)
-                msg = (
-                    f"Type mismatch in operands, Got {formatted_rhs} "
-                    f"instead of {formatted_lhs}."
-                )
-                self.report_error(lineno, msg)
-
-            self.previous_type_check = None
+        print("indexing")
+        if self.argument_counter_active:
+            #function call
+            latest_argument = self.argument_counter[-1].pop()
+            if latest_argument == SymbolType.ARRAY_INT:
+                self.argument_counter[-1].append(SymbolType.INT) 
         else:
-            # This means array is in self.type_to_check
-            if self.type_to_check == SymbolType.ARRAY_INT:
-                self.type_to_check = SymbolType.INT
-            elif self.type_to_check == SymbolType.ARRAY_VOID:
-                self.type_to_check = SymbolType.VOID
+            if self.previous_type_check:
+                # Array was indexed in the rhs
+                correct_type_rhs = self.previous_type_check["rhs"]
+                if self.previous_type_check["rhs"] == SymbolType.ARRAY_INT:
+                    correct_type_rhs = SymbolType.INT
+                elif self.previous_type_check["rhs"] == SymbolType.ARRAY_VOID:
+                    correct_type_rhs = SymbolType.VOID
+
+                if self.compare_types(self.previous_type_check["lhs"], correct_type_rhs):
+                    # It was a match after all
+                    for e in self.errors[::-1]:
+                        if "Semantic Error! Type mismatch in operands" in e:
+                            self.errors.remove(e)
+                            break
+                elif (
+                    not self.compare_types(self.previous_type_check["lhs"], correct_type_rhs)
+                    and self.compare_types(self.previous_type_check["lhs"], self.previous_type_check["rhs"])
+                ):
+                    # There should have been an error add it
+                    formatted_lhs = format_type(self.previous_type_check["lhs"])
+                    formatted_rhs = format_type(correct_type_rhs)
+                    msg = (
+                        f"Type mismatch in operands, Got {formatted_rhs} "
+                        f"instead of {formatted_lhs}."
+                    )
+                    self.report_error(lineno, msg)
+
+                self.previous_type_check = None
+            else:
+                print("lhs")
+                print(self.type_check_active)
+                # This means array is in self.type_to_check
+                if self.type_to_check == SymbolType.ARRAY_INT:
+                    self.type_to_check = SymbolType.INT
+                elif self.type_to_check == SymbolType.ARRAY_VOID:
+                    self.type_to_check = SymbolType.VOID
 
     def semantic_actions(self, action_symbol, input_ptr, latest_type, lineno):
         if action_symbol == "#PID":
