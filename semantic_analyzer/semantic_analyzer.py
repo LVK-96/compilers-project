@@ -95,10 +95,7 @@ class SemanticAnalyzer:
         return None
 
     def compare_types(self, lhs, rhs):
-        if lhs == rhs:
-            return True
-        else:
-            return False
+        return lhs == rhs
 
     def report_error(self, lineno, msg):
         error_msg = f"#{lineno} : Semantic Error! {msg}"
