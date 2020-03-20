@@ -67,11 +67,20 @@ class SemanticAnalyzer:
 
         return correct_type
 
-    def get_index(self, name, upper_limit=None, wanted_type=None):
-        if upper_limit:
-            r = min(upper_limit, len(self.symbol_table))
+    def get_index(self, name, lower_limit=None, upper_limit=None, wanted_type=None):
+        # lower_limit is inclusive
+        if lower_limit:
+            lower = min(max(lower_limit - 1, - 1), len(self.symbol_table))
         else:
-            r = len(self.symbol_table)
+            lower = -1
+
+        # upper_limit is inclusive
+        if upper_limit:
+            upper = max(0, min(upper_limit, len(self.symbol_table) - 1))
+        else:
+            upper = len(self.symbol_table) - 1
+
+        assert lower <= upper
 
         wanted_types = []
         if wanted_type == "variable":
@@ -79,7 +88,7 @@ class SemanticAnalyzer:
         if wanted_type == "function":
             wanted_types = wanted_types + [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
 
-        for i in reversed(range(r)):
+        for i in range(upper, lower, - 1):
             if (
                 wanted_type
                 and self.symbol_table[i]["name"] == name
@@ -147,7 +156,8 @@ class SemanticAnalyzer:
     def start_argument_counter(self, input_ptr):
         if len(self.function_call_stack) > 0:
             # A function was called
-            idx = self.get_index(self.function_call_stack[-1], upper_limit=len(self.symbol_table) - 1)
+            # Symbol table head is the false entry added by scanner removed later in use pid
+            idx = self.get_index(self.function_call_stack[-1], upper_limit=len(self.symbol_table) - 2)
             if idx is not None:
                 found_symbol = self.symbol_table[idx]
                 if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
@@ -324,8 +334,8 @@ class SemanticAnalyzer:
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
-        idx_upper = self.get_index(current, upper_limit=self.scope_stack[-1])  # Only global scope
-        idx_local = self.get_index(current)  # Local scope
+        idx_upper = self.get_index(current, upper_limit=self.scope_stack[-1] - 1)  # Only global scope
+        idx_local = self.get_index(current, lower_limit=self.scope_stack[-1])  # Local scope
 
         upper_symbol = None
         if idx_upper is not None:
@@ -382,7 +392,8 @@ class SemanticAnalyzer:
 
     def function_call(self):
         if self.possible_function_call:
-            idx = self.get_index(self.possible_function_call, upper_limit=len(self.symbol_table) - 1)
+            # Symbol table head is false entry added by scanner, removed later in use pid
+            idx = self.get_index(self.possible_function_call, upper_limit=len(self.symbol_table) - 2)
             self.possible_function_call = None
             if idx is not None:
                 # Check if found symbol is a function and add to call stack
