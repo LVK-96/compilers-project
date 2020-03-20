@@ -69,6 +69,7 @@ class SemanticAnalyzer:
 
     def get_index(self, name, lower_limit=None, upper_limit=None, wanted_type=None):
         # lower_limit is inclusive
+        # However range is not -> lower_limit - 1
         if lower_limit:
             lower = min(max(lower_limit - 1, - 1), len(self.symbol_table))
         else:
@@ -80,7 +81,7 @@ class SemanticAnalyzer:
         else:
             upper = len(self.symbol_table) - 1
 
-        assert lower <= upper
+        assert lower < upper
 
         wanted_types = []
         if wanted_type == "variable":
