@@ -2,6 +2,7 @@
 Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
+
 from scanner import format_type, SymbolType
 
 
@@ -36,6 +37,11 @@ class SemanticAnalyzer:
         self.in_switch_case = 0
 
         self.type_check_active = False
+        # Stores type check arrays
+        # That hold the elements of an expression.
+        # In addition to the elem name on entry in this array contains a flag
+        # that tells if the element is an array and is indexed (flag == 1)
+        # or if the element is a function and it is called (flag == 2)
         self.type_check_stack = []
 
     def get_correct_type(self, elem):
@@ -54,6 +60,8 @@ class SemanticAnalyzer:
                     correct_type = SymbolType.INT
                 elif symbol["type"] == SymbolType.FUNCTION_VOID:
                     correct_type = SymbolType.VOID
+        # FIXME: Once elem[0] is stores the input ptr not just actual input
+        # This should be changed to elem[0][0] == "NUM"
         elif elem[0].isnumeric():
             correct_type = SymbolType.INT
 
@@ -88,10 +96,6 @@ class SemanticAnalyzer:
 
     def compare_types(self, lhs, rhs):
         if lhs == rhs:
-            return True
-        elif lhs == SymbolType.INT and rhs == SymbolType.FUNCTION_INT:
-            return True
-        elif lhs == SymbolType.VOID and rhs == SymbolType.FUNCTION_VOID:
             return True
         else:
             return False
@@ -174,6 +178,10 @@ class SemanticAnalyzer:
                         msg = f"Mismatch in numbers of arguments of '{func_name}'."
                         self.report_error(lineno, msg)
 
+                    # FIXME: The type check of arguments fails if given an indexed array
+                    # i.e. f(a[0]) will consider a[0] as an array even though it is int
+                    # To fix this do something similar to expression type checking
+                    # by adding a flag to the argument that tells it was indexed and thus an int
                     for i, arg in enumerate(given_args):
                         if i >= n_of_params:
                             break
@@ -235,16 +243,11 @@ class SemanticAnalyzer:
                     correct_type1 = self.get_correct_type(elem1)
 
                     if correct_type0 and correct_type0 in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
+                        # Array not allowed in lhs of any operation
                         msg = f"Illegal operation for type array"
                         self.report_error(lineno, msg)
 
                     elif correct_type0 and correct_type1 and not self.compare_types(correct_type0, correct_type1):
-                        if correct_type0 == SymbolType.FUNCTION_INT:
-                            correct_type0 = SymbolType.INT
-
-                        if correct_type0 == SymbolType.FUNCTION_VOID:
-                            correct_type0 = SymbolType.VOID
-
                         lhs = format_type(correct_type0)
                         rhs = format_type(correct_type1)
                         msg = (
@@ -263,11 +266,12 @@ class SemanticAnalyzer:
 
     def add_to_type_check(self, input_ptr):
         if self.type_check_active:
+            # FIXME: Just add the whole input_ptr
             symbol = (input_ptr[1], 0)
             self.type_check_stack[-1].append(symbol)
 
     def indexing(self):
-        if self.type_check_active:
+        if self.type_check_active:  # update type check flag
             self.type_check_stack[-1][-1] = (self.type_check_stack[-1][-1][0], 1)
 
     # Check that variable type not void
@@ -365,6 +369,9 @@ class SemanticAnalyzer:
     def beginscope(self):
         # Add function ID to scope stack
         # next index - index starts from zero
+
+        # FIXME: There are two levels of scope in this exercise
+        # function scope and global scope, we need to remove #BEGINSCOPE - #ENDSCOPE from other "scopes"
         next_index = len(self.symbol_table)
         self.scope_stack.append(next_index)
 
@@ -385,8 +392,8 @@ class SemanticAnalyzer:
                 called_func = self.symbol_table[idx]
                 if called_func["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
                     self.function_call_stack.append(called_func["name"])
-                if self.type_check_active:
-                    self.type_check_stack[-1][-1]= (self.type_check_stack[-1][-1][0], 2)
+                if self.type_check_active:  # Update type check flag
+                    self.type_check_stack[-1][-1] = (self.type_check_stack[-1][-1][0], 2)
 
     def not_function_call(self):
         self.possible_function_call = None
