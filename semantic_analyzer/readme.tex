@@ -1,22 +1,7 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
 
-\usepackage{fancyvrb}
-
-% redefine \VerbatimInput
-\RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}%
-{fontsize=\footnotesize,
- %
- frame=lines,  % top and bottom rule only
- framesep=2em, % separation between frame and text
- rulecolor=\color{Gray},
- %
- %
- commandchars=\|\(\), % escape character and argument delimiters for
-                      % commands within the verbatim
- commentchar=*        % comment character
-}
 
 \title{Programming Assignment 4}
 \author{Leo Kivikunnas 525925, Jaakko koskela 526050}
@@ -28,10 +13,14 @@
 
 \section{Augmented LL(1) Grammar}
 
-\VerbatimInput{grammar.txt}
+\lstinputlisting[
+    breakatwhitespace,
+    breaklines,
+    basicstyle=\small
+]{grammar.txt}
 
 \section{Error Detection}
 
-Our program can detect all 8 error types listed in the assignment.
+Our lexical analyzer can detect all of the 8 error types listed in the assignment.
 
 \end{document}
