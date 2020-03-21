@@ -4,16 +4,16 @@ Declaration -> Declaration-initial Declaration-prime
 Declaration-initial -> Type-specifier #PID ID
 Declaration-prime -> #FUNCTION Fun-declaration-prime | #VARIABLE Var-declaration-prime
 Var-declaration-prime -> ; | #ARRAY [ NUM ] ;
-Fun-declaration-prime -> #BEGINSCOPE ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt
+Fun-declaration-prime -> #BEGINSCOPE ( #START_PARAM_COUNTER Params #STOP_PARAM_COUNTER ) Compound-stmt #ENDSCOPE
 Type-specifier -> int | void
 Params -> int #PID ID Param-prime Param-list | void Param-list-void-abtar
 Param-list-void-abtar -> #PID ID Param-prime Param-list | EPSILON
 Param-list -> , Param Param-list | EPSILON
 Param -> Declaration-initial Param-prime
 Param-prime -> #ARRAY #ARRAY_PARAM [ ] | #PARAM EPSILON
-Compound-stmt -> { Declaration-list Statement-list #ENDSCOPE }
+Compound-stmt -> { Declaration-list Statement-list }
 Statement-list -> Statement Statement-list | EPSILON
-Statement -> Expression-stmt | #BEGINSCOPE Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
+Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
 Expression-stmt -> #START_TYPE_CHECK Expression #TYPE_CHECK ; | #CONTINUE continue ; | #BREAK break ; | #TYPE_CHECK ;
 Selection-stmt -> if ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) Statement else Statement
 Iteration-stmt -> while #ENTER_WHILE ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) Statement #EXIT_WHILE
