@@ -46,7 +46,7 @@ class SemanticAnalyzer:
 
     def get_correct_type(self, elem):
         correct_type = None
-        idx = self.get_index(elem[0])
+        idx = self.get_index(elem[0][1])
         if idx is not None:
             symbol = self.symbol_table[idx]
             correct_type = symbol["type"]
@@ -62,7 +62,7 @@ class SemanticAnalyzer:
                     correct_type = SymbolType.VOID
         # FIXME: Once elem[0] is stores the input ptr not just actual input
         # This should be changed to elem[0][0] == "NUM"
-        elif elem[0].isnumeric():
+        elif elem[0][0] == "NUM":
             correct_type = SymbolType.INT
 
         return correct_type
@@ -274,8 +274,7 @@ class SemanticAnalyzer:
 
     def add_to_type_check(self, input_ptr):
         if self.type_check_active:
-            # FIXME: Just add the whole input_ptr
-            symbol = (input_ptr[1], 0)
+            symbol = (input_ptr, 0)
             self.type_check_stack[-1].append(symbol)
 
     def indexing(self):
