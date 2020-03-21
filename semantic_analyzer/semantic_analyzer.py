@@ -155,8 +155,7 @@ class SemanticAnalyzer:
     def start_argument_counter(self, input_ptr):
         if len(self.function_call_stack) > 0:
             # A function was called
-            # Symbol table head is the false entry added by scanner removed later in use pid
-            idx = self.get_index(self.function_call_stack[-1], upper_limit=len(self.symbol_table) - 2)
+            idx = self.get_index(self.function_call_stack[-1])
             if idx is not None:
                 found_symbol = self.symbol_table[idx]
                 if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
@@ -384,8 +383,7 @@ class SemanticAnalyzer:
 
     def function_call(self):
         if self.possible_function_call:
-            # Symbol table head is false entry added by scanner, removed later in use pid
-            idx = self.get_index(self.possible_function_call, upper_limit=len(self.symbol_table) - 2)
+            idx = self.get_index(self.possible_function_call)
             self.possible_function_call = None
             if idx is not None:
                 # Check if found symbol is a function and add to call stack
