@@ -60,8 +60,6 @@ class SemanticAnalyzer:
                     correct_type = SymbolType.INT
                 elif symbol["type"] == SymbolType.FUNCTION_VOID:
                     correct_type = SymbolType.VOID
-        # FIXME: Once elem[0] is stores the input ptr not just actual input
-        # This should be changed to elem[0][0] == "NUM"
         elif elem[0][0] == "NUM":
             correct_type = SymbolType.INT
 
@@ -186,10 +184,6 @@ class SemanticAnalyzer:
                         msg = f"Mismatch in numbers of arguments of '{func_name}'."
                         self.report_error(lineno, msg)
 
-                    # FIXME: The type check of arguments fails if given an indexed array
-                    # i.e. f(a[0]) will consider a[0] as an array even though it is int
-                    # To fix this do something similar to expression type checking
-                    # by adding a flag to the argument that tells it was indexed and thus an int
                     for i, arg in enumerate(given_args):
                         if i >= n_of_params:
                             break
@@ -377,9 +371,6 @@ class SemanticAnalyzer:
     def beginscope(self):
         # Add function ID to scope stack
         # next index - index starts from zero
-
-        # FIXME: There are two levels of scope in this exercise
-        # function scope and global scope, we need to remove #BEGINSCOPE - #ENDSCOPE from other "scopes"
         next_index = len(self.symbol_table)
         self.scope_stack.append(next_index)
 
