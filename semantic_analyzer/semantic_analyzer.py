@@ -195,8 +195,7 @@ class SemanticAnalyzer:
                             break
 
                         expected_type = func_params[i]
-                        actual_type = SymbolType.INT if arg[0] == 'NUM' else self.symbol_table[self.get_index(
-                            arg[1])]["type"]
+                        actual_type = self.get_correct_type(arg)
                         if not self.compare_types(expected_type, actual_type):
                             expected_type = format_type(expected_type)
                             actual_type = format_type(actual_type)
@@ -212,7 +211,7 @@ class SemanticAnalyzer:
 
     def argument(self, input_ptr):
         if self.argument_counter_active:
-            self.argument_counter[-1].append(input_ptr)
+            self.argument_counter[-1].append((input_ptr, 0))
 
     def enter_while(self):
         self.in_while += 1
@@ -280,6 +279,8 @@ class SemanticAnalyzer:
     def indexing(self):
         if self.type_check_active:  # update type check flag
             self.type_check_stack[-1][-1] = (self.type_check_stack[-1][-1][0], 1)
+        if self.argument_counter_active:  # update argument counter flag
+            self.argument_counter[-1][-1] = (self.argument_counter[-1][-1][0], 1)
 
     # Check that variable type not void
     def variable(self, lineno):
@@ -402,6 +403,8 @@ class SemanticAnalyzer:
                     self.function_call_stack.append(called_func["name"])
                 if self.type_check_active:  # Update type check flag
                     self.type_check_stack[-1][-1] = (self.type_check_stack[-1][-1][0], 2)
+                if self.argument_counter_active:  # update argument counter flag
+                    self.argument_counter[-1][-1] = (self.argument_counter[-1][-1][0], 2)
 
     def not_function_call(self):
         self.possible_function_call = None
