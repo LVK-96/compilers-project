@@ -3,7 +3,6 @@ leo kivikunnas 525925
 jaakko koskela 526050
 """
 
-import sys
 import parser_generator
 from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
@@ -288,10 +287,8 @@ class LL1_parser:
             f.close()
 
 
-def main(argv):
+def main():
     filename = "input.txt"
-    if len(argv) > 0:
-        filename = argv[0]
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
@@ -317,4 +314,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1::])
+    main()
