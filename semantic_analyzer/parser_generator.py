@@ -163,8 +163,11 @@ def debug_print(firsts, follows, table):
         print(line)
 
 
-def gen_table():
-    with open("grammar.txt") as f:
+def gen_table(argv):
+    filename = "grammar.txt"
+    if len(argv) > 0:
+        filename = argv[0]
+    with open(filename) as f:
         data = f.read()
         data = data.rstrip()
         f.close
@@ -223,4 +226,5 @@ def gen_table():
 
 
 if __name__ == "__main__":
-    gen_table()
+    argv = sys.argv[1:]
+    gen_table(argv)
