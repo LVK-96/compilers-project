@@ -256,7 +256,9 @@ class SemanticAnalyzer:
                         )
                         self.report_error(lineno, msg)
 
-        popped = self.type_check_stack.pop()
+        if len(self.type_check_stack) > 0:
+            popped = self.type_check_stack.pop()
+
         if len(self.type_check_stack) < 1:
             self.type_check_active = False
         elif in_brackets:
