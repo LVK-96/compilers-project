@@ -9,7 +9,8 @@ from scanner import format_type, SymbolType
 class SemanticAnalyzer:
     def __init__(self, symbol_table, scope_stack):
         self.symbol_table = symbol_table
-        self.ss = 0
+        self.scope_stack = scope_stack
+
         # Count params for functions in definitions
         self.param_counter_active = False
         self.param_counter = []
@@ -18,6 +19,9 @@ class SemanticAnalyzer:
         # Append new function and
         # new list of arguments when #START_ARGUMENT_COUNTER is ran
         # and input ptr points to function name
+        # In addition to the elem name on entry in this array contains a flag
+        # that tells if the element is an array and is indexed (flag == 1)
+        # or if the element is a function and it is called (flag == 2)
         # Head is the active function
         # Pop head in #STOP_ARGUMENT_COUNTER
         self.argument_counter_active = False
@@ -25,9 +29,7 @@ class SemanticAnalyzer:
         self.function_call_stack = []
         self.argument_counter = []
         self.errors = []
-        self.scope_stack = scope_stack
 
-        # Store type to check
         # Are we in a while loop
         # Integer represents number of nested loops
         self.in_while = 0
