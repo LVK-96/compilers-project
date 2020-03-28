@@ -382,7 +382,9 @@ class SemanticAnalyzer:
         elif action_symbol == "#BEGINSCOPE":
             self.beginscope()
         elif action_symbol == "#ENDSCOPE":
+            # print("Exiting scope")
             # pprint.pprint(self.symbol_table) # TODO: remove this before turnin
+            # print()
             self.endscope()
         elif action_symbol == "#END":
             self.end(lineno)
