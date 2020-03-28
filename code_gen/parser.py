@@ -380,6 +380,7 @@ def main(argv):
     parser.scanner.write_symbol_table_to_file()
     parser.scanner.write_errors_to_file()
     parser.semantic_analyzer.write_errors_to_file()
+    parser.code_gen.write_output_to_file()
 
 
 if __name__ == "__main__":
