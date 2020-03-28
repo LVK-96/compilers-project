@@ -262,7 +262,7 @@ class LL1_parser:
         if head.startswith("#"):
             self.semantic_analyzer.semantic_actions(
                 head, self.input_ptr, self.latest_type, self.lineno)
-            self.code_gen.semantic_actions(head)
+            self.code_gen.semantic_actions(head, self.input_ptr)
             self.stack.pop()
 
         elif self.input_ptr[to_compare] == head:

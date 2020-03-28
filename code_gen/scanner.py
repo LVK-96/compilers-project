@@ -327,7 +327,7 @@ class Scanner:
             # Might add false entries when we are using IDs
             # Removing these false entries is handeled in use_pid in the
             # semantic_analyzer
-            self.symbol_table.append({"name": substring, "type": None})
+            self.symbol_table.append({"name": substring, "type": None, "address": None})
             self.save_token(token, substring)
 
     def get_next_token(self):

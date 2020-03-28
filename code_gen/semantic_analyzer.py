@@ -2,7 +2,7 @@
 Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
-
+import pprint
 from scanner import format_type, get_symbol_table_index, SymbolType
 
 
@@ -382,6 +382,7 @@ class SemanticAnalyzer:
         elif action_symbol == "#BEGINSCOPE":
             self.beginscope()
         elif action_symbol == "#ENDSCOPE":
+            # pprint.pprint(self.symbol_table) # TODO: remove this before turnin
             self.endscope()
         elif action_symbol == "#END":
             self.end(lineno)
