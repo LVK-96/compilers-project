@@ -31,6 +31,9 @@ class CodeGenerator:
     def __init__(self, symbol_table, scope_stack):
         self.symbol_table = symbol_table
         self.scope_stack = scope_stack
+        # Semnatic stack holds arrays of format [value, is_immediate]
+        # e.g. [100, 0] means address 100
+        #      [100, 1] means immediate value 100
         self.semantic_stack = []
 
         # Address spaces
@@ -39,15 +42,18 @@ class CodeGenerator:
         self.temporaries_lower = 500
         self.temporaries_upper = 1000
 
+        self.temps = [None] * (1 + self.temporaries_upper - self.temporaries_lower)
+
         # Next addres to allocate
         self.next_var_addr = self.variables_lower
         self.next_temp_addr = self.temporaries_lower
 
-        # The next assignment rhs is assigning an immediate value
-        self.assigning_immediate = False
-
         self.output_lineno = 0
         self.output = []
+
+    def get_temp_by_addr(self, addr):
+        assert addr >= 500 and addr <= 1000
+        return self.temps[addr - 500]
 
     def format_operand(self, operand, operand_type):
         if operand_type == OperandTypes.ADDRESSING:
@@ -102,22 +108,33 @@ class CodeGenerator:
             self.increment_var_addr(4 * (int(input_ptr[1]) - 1))  # One 4 byte section was already allocated
 
     def use_pid(self, input_ptr):
-        self.semantic_stack.append(self.find_addr(input_ptr[1]))
+        self.semantic_stack.append([self.find_addr(input_ptr[1]), 0])
 
-    def assign_immediate(self, input_ptr):
-        self.semantic_stack.append(input_ptr[1])
-        self.assigning_immediate = True
+    def immediate(self, input_ptr):
+        self.semantic_stack.append([int(input_ptr[1]), 1])
+
+    def indexing_done(self):
+        # ss head is the address of the temp or the immediate value that is used as the index
+        # ss head - 1 is the address of the array we are indexing
+        if self.semantic_stack[-1][1]:
+            # Indexing using an immediate
+            arr_idx = self.semantic_stack.pop()
+            arr_idx = arr_idx[0]
+        else:
+            arr_idx = self.semantic_stack.pop()
+            arr_idx = self.get_temp_by_addr(arr_idx[0])
+
+        self.semantic_stack[-1][0] += (arr_idx * 4)
 
     def assign(self):
-        if not self.assigning_immediate and len(self.semantic_stack) > 1:
-            # ss head is address of variable/temporary that we want to assign
-            operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
-        elif self.assigning_immediate and len(self.semantic_stack) > 0:
+        if self.semantic_stack[-1][1]:
             # ss head is an immediate value
             operand_types = [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
-            self.assigning_immediate = False
+        else:
+            # ss head is address of variable/temporary that we want to assign
+            operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
 
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [self.semantic_stack[-1], self.semantic_stack[-2]], operand_types)
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [self.semantic_stack[-1][0], self.semantic_stack[-2][0]], operand_types)
         self.output.append(generated_3ac)
         self.output_lineno += 1
 
@@ -130,8 +147,10 @@ class CodeGenerator:
             self.array_size(input_ptr)
         elif action_symbol == "#USE_PID":
             self.use_pid(input_ptr)
-        elif action_symbol == "#ASSIGN_IMMEDIATE":
-            self.assign_immediate(input_ptr)
+        elif action_symbol == "#IMMEDIATE":
+            self.immediate(input_ptr)
+        elif action_symbol == "#INDEXING_DONE":
+            self.indexing_done()
         elif action_symbol == "#ASSIGN":
             self.assign()
         else:
