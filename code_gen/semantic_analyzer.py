@@ -3,7 +3,7 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-from scanner import format_type, SymbolType
+from scanner import format_type, get_symbol_table_index, SymbolType
 
 
 class SemanticAnalyzer:
@@ -48,7 +48,7 @@ class SemanticAnalyzer:
 
     def get_correct_type(self, elem):
         correct_type = None
-        idx = self.get_index(elem[0][1])
+        idx = get_symbol_table_index(self.symbol_table, elem[0][1])
         if idx is not None:
             symbol = self.symbol_table[idx]
             correct_type = symbol["type"]
@@ -67,42 +67,6 @@ class SemanticAnalyzer:
 
         return correct_type
 
-    def get_index(self, name, lower_limit=None, upper_limit=None, wanted_type=None):
-        # lower_limit is inclusive
-        # However range is not -> lower_limit - 1
-        if lower_limit:
-            lower = min(max(lower_limit - 1, - 1), len(self.symbol_table))
-        else:
-            lower = -1
-
-        # upper_limit is inclusive
-        if upper_limit:
-            upper = max(0, min(upper_limit, len(self.symbol_table) - 1))
-        else:
-            upper = len(self.symbol_table) - 1
-
-        assert lower < upper
-
-        wanted_types = []
-        if wanted_type == "variable":
-            wanted_types = wanted_types + [SymbolType.INT, SymbolType.VOID, SymbolType.ARRAY_INT]
-        if wanted_type == "function":
-            wanted_types = wanted_types + [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
-
-        for i in range(upper, lower, - 1):
-            if (
-                wanted_type
-                and self.symbol_table[i]["name"] == name
-                and self.symbol_table[i]["type"] in wanted_types
-            ):
-                return i
-            elif (
-                len(wanted_types) == 0
-                and self.symbol_table[i]["name"] == name
-            ):
-                return i
-
-        return None
 
     def compare_types(self, lhs, rhs):
         return lhs == rhs
@@ -157,7 +121,7 @@ class SemanticAnalyzer:
     def start_argument_counter(self, input_ptr):
         if len(self.function_call_stack) > 0:
             # A function was called
-            idx = self.get_index(self.function_call_stack[-1])
+            idx = get_symbol_table_index(self.symbol_table, self.function_call_stack[-1])
             if idx is not None:
                 found_symbol = self.symbol_table[idx]
                 if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
@@ -175,7 +139,7 @@ class SemanticAnalyzer:
             if len(self.argument_counter) == 0 and len(self.function_call_stack) == 0:
                 self.argument_counter_active = False
 
-            idx = self.get_index(func_name)
+            idx = get_symbol_table_index(self.symbol_table, func_name)
             if idx is not None:
                 found_symbol = self.symbol_table[idx]
                 if found_symbol["type"] in [SymbolType.FUNCTION_VOID, SymbolType.FUNCTION_INT]:
@@ -315,25 +279,23 @@ class SemanticAnalyzer:
 
     def pid(self, input_ptr, latest_type, lineno):
         current = input_ptr[1]
-        idx = self.get_index(current)
+        idx = get_symbol_table_index(self.symbol_table, current)
         if idx is not None:
             symbol = self.symbol_table[idx]
             if(symbol["type"] is None):
                 # ID is being declared
                 if latest_type == SymbolType.INT:
-                    self.symbol_table[self.get_index(
-                        current)]["type"] = SymbolType.INT
+                    self.symbol_table[get_symbol_table_index(self.symbol_table, current)]["type"] = SymbolType.INT
                 elif latest_type == SymbolType.VOID:
-                    self.symbol_table[self.get_index(
-                        current)]["type"] = SymbolType.VOID
+                    self.symbol_table[get_symbol_table_index(self.symbol_table, current)]["type"] = SymbolType.VOID
         else:
             # ID not declared or not in scope - this should never be reached
             self.report_error(lineno, f"'{current}' is not defined.")
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
-        idx_upper = self.get_index(current, upper_limit=self.scope_stack[-1] - 1)  # Only global scope
-        idx_local = self.get_index(current, lower_limit=self.scope_stack[-1])  # Local scope
+        idx_upper = get_symbol_table_index(self.symbol_table, current, upper_limit=self.scope_stack[-1] - 1)  # Only global scope
+        idx_local = get_symbol_table_index(self.symbol_table, current, lower_limit=self.scope_stack[-1])  # Local scope
 
         upper_symbol = None
         if idx_upper is not None:
@@ -387,7 +349,7 @@ class SemanticAnalyzer:
 
     def function_call(self):
         if self.possible_function_call:
-            idx = self.get_index(self.possible_function_call)
+            idx = get_symbol_table_index(self.symbol_table, self.possible_function_call)
             self.possible_function_call = None
             if idx is not None:
                 # Check if found symbol is a function and add to call stack

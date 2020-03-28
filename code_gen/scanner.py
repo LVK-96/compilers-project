@@ -3,7 +3,6 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-
 from enum import Enum
 
 
@@ -22,6 +21,44 @@ def format_type(type):
         return "keyword"
     else:
         return "unknown"
+
+
+def get_symbol_table_index(symbol_table, name, lower_limit=None, upper_limit=None, wanted_type=None):
+    # lower_limit is inclusive
+    # However range is not -> lower_limit - 1
+    if lower_limit:
+        lower = min(max(lower_limit - 1, - 1), len(symbol_table))
+    else:
+        lower = -1
+
+    # upper_limit is inclusive
+    if upper_limit:
+        upper = max(0, min(upper_limit, len(symbol_table) - 1))
+    else:
+        upper = len(symbol_table) - 1
+
+    assert lower < upper
+
+    wanted_types = []
+    if wanted_type == "variable":
+        wanted_types = wanted_types + [SymbolType.INT, SymbolType.VOID, SymbolType.ARRAY_INT]
+    if wanted_type == "function":
+        wanted_types = wanted_types + [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
+
+    for i in range(upper, lower, - 1):
+        if (
+            wanted_type
+            and symbol_table[i]["name"] == name
+            and symbol_table[i]["type"] in wanted_types
+        ):
+            return i
+        elif (
+            len(wanted_types) == 0
+            and symbol_table[i]["name"] == name
+        ):
+            return i
+
+    return None
 
 
 class SymbolType(Enum):
