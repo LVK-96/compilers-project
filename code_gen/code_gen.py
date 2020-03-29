@@ -180,8 +180,9 @@ class CodeGenerator:
             # ss head is address of variable/temporary that we want to assign
             operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
 
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [
-                                          self.semantic_stack[-1][0], self.semantic_stack[-2][0]], operand_types)
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                          [self.semantic_stack[-1][0], self.semantic_stack[-2][0]],
+                                          operand_types)
         self.output.append(generated_3ac)
         self.output_lineno += 1
         del self.semantic_stack[-2:]
@@ -216,8 +217,9 @@ class CodeGenerator:
         elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
             operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
 
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [
-                                          self.semantic_stack[-1][0], self.next_temp_addr], operand_types)
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                          [self.semantic_stack[-1][0], self.next_temp_addr],
+                                          operand_types)
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.semantic_stack.pop()
