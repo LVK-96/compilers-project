@@ -38,7 +38,7 @@ class CodeGenerator:
         self.symbol_table = symbol_table
         self.scope_stack = scope_stack
 
-        # Semnatic stack holds arrays of format [value, flag]
+        # Semantic stack holds arrays of format [value, flag]
         self.semantic_stack = []
 
         # Address spaces
@@ -58,7 +58,7 @@ class CodeGenerator:
 
         self.function_call_stack = []
 
-        # Linenumbers of functions in output, used for making the jumps
+        # Linenumbers of functions in output, used for making jumps
         self.function_linenos = {}
         # Addresses of temps holding function return values
         self.function_return_value_addrs = {}
@@ -120,10 +120,9 @@ class CodeGenerator:
 
     def end(self):
         # backpatch jump to main
-        self.output[0] = self.generate_3ac(
-            ThreeAddressCodes.JP, [
-                self.function_linenos["main"]], [
-                OperandTypes.JP_LINENO], backpatch=0)
+        self.output[0] = self.generate_3ac(ThreeAddressCodes.JP,
+                                           [self.function_linenos["main"]],
+                                           [OperandTypes.JP_LINENO], backpatch=0)
 
     def variable(self):
         # Variable just declared is at the head of the symbol_table
@@ -134,7 +133,7 @@ class CodeGenerator:
 
     def function(self):
         # Function just declared is at the head of the symbol table
-        # Functions dont have addresses so remove address field from dict
+        # Functions dont have addresses so remove address field from the symbol table entry
         if (
             self.symbol_table[-1]["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
             and "address" in self.symbol_table[-1].keys()
@@ -311,10 +310,6 @@ class CodeGenerator:
             self.function_call()
         elif action_symbol == "#RETURN":
             self.ret()
-        elif action_symbol == "#ENDSCOPE":
-            # print(self.semantic_stack)
-            # print()
-            pass
         else:
             pass
 
@@ -322,5 +317,4 @@ class CodeGenerator:
         with open("output.txt", "w") as f:
             for o in self.output:
                 f.write(f"{o}\n")
-
             f.close()
