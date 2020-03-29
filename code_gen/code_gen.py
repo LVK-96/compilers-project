@@ -114,7 +114,10 @@ class CodeGenerator:
 
     def end(self):
         # backpatch jump to main
-        self.output[0] = self.generate_3ac(ThreeAddressCodes.JP, [self.function_linenos["main"]], [OperandTypes.JP_LINENO], backpatch=0)
+        self.output[0] = self.generate_3ac(
+            ThreeAddressCodes.JP, [
+                self.function_linenos["main"]], [
+                OperandTypes.JP_LINENO], backpatch=0)
 
     def variable(self):
         # Variable just declared is at the head of the symbol_table
@@ -177,14 +180,18 @@ class CodeGenerator:
             # ss head is address of variable/temporary that we want to assign
             operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
 
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [self.semantic_stack[-1][0], self.semantic_stack[-2][0]], operand_types)
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [
+                                          self.semantic_stack[-1][0], self.semantic_stack[-2][0]], operand_types)
         self.output.append(generated_3ac)
         self.output_lineno += 1
         del self.semantic_stack[-2:]
 
     def function_call(self):
         # Backpatch jump back to caller from function
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP, [self.output_lineno + 1], [OperandTypes.JP_LINENO], backpatch=self.semantic_stack[-2][0])
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                          [self.output_lineno + 1],
+                                          [OperandTypes.JP_LINENO],
+                                          backpatch=self.semantic_stack[-2][0])
         self.output[self.semantic_stack[-2][0]] = generated_3ac
         del self.semantic_stack[-2]
 
@@ -192,7 +199,9 @@ class CodeGenerator:
         self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], SSTypes.ADDRESS])
 
         # Jump to called function
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP, [self.function_linenos[self.function_call_stack[-1]]], [OperandTypes.JP_LINENO])
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                          [self.function_linenos[self.function_call_stack[-1]]],
+                                          [OperandTypes.JP_LINENO])
         self.function_call_stack.pop()
         self.output.append(generated_3ac)
         self.output_lineno += 1
@@ -206,7 +215,9 @@ class CodeGenerator:
             operand_types = [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
         elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
             operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [self.semantic_stack[-1][0], self.next_temp_addr], operand_types)
+
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN, [
+                                          self.semantic_stack[-1][0], self.next_temp_addr], operand_types)
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.semantic_stack.pop()
@@ -217,7 +228,7 @@ class CodeGenerator:
         self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
         self.output_lineno += 1
 
-        # We are ending code gen this function
+        # We are ending code gen for this function
         self.curren_function = None
 
     def semantic_actions(self, action_symbol, input_ptr):

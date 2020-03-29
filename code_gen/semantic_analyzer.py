@@ -67,7 +67,6 @@ class SemanticAnalyzer:
 
         return correct_type
 
-
     def compare_types(self, lhs, rhs):
         return lhs == rhs
 
@@ -294,7 +293,8 @@ class SemanticAnalyzer:
 
     def use_pid(self, input_ptr, lineno):
         current = input_ptr[1]
-        idx_upper = get_symbol_table_index(self.symbol_table, current, upper_limit=self.scope_stack[-1] - 1)  # Only global scope
+        idx_upper = get_symbol_table_index(self.symbol_table, current,
+                                           upper_limit=self.scope_stack[-1] - 1)  # Only global scope
         idx_local = get_symbol_table_index(self.symbol_table, current, lower_limit=self.scope_stack[-1])  # Local scope
 
         upper_symbol = None
