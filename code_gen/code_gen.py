@@ -26,13 +26,7 @@ class OperandTypes(Enum):
     ADDRESSING = 1
     INDIRECT_ADDRESSING = 2
     IMMEDIATE = 3
-    JP_LINENO = 4
-
-
-class SSTypes(Enum):
-    ADDRESS = 1
-    IMMEDIATE = 2
-    LINENO = 3
+    LINENO = 4
 
 
 class CodeGenerator:
@@ -48,8 +42,6 @@ class CodeGenerator:
         self.variables_upper = 499
         self.temporaries_lower = 500
         self.temporaries_upper = 1000
-
-        self.temps = [None] * (1 + self.temporaries_upper - self.temporaries_lower)
 
         # Next addres to allocate
         self.next_var_addr = self.variables_lower
@@ -73,12 +65,8 @@ class CodeGenerator:
         self.output_lineno = 0
         self.output = []
 
-    def get_temp_by_addr(self, addr):
-        assert addr >= 500 and addr <= 1000
-        return self.temps[addr - 500]
-
     def format_operand(self, operand, operand_type):
-        if operand_type == OperandTypes.ADDRESSING or operand_type == OperandTypes.JP_LINENO:
+        if operand_type == OperandTypes.ADDRESSING or operand_type == OperandTypes.LINENO:
             return str(operand)
         elif operand_type == OperandTypes.INDIRECT_ADDRESSING:
             return f"@{operand}"
@@ -126,7 +114,7 @@ class CodeGenerator:
     def backpatch_save(self):
         # Helper function for saving places for backpatching
         self.output.append(None)
-        self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
+        self.semantic_stack.append([self.output_lineno, OperandTypes.LINENO])
         self.output_lineno += 1
 
     def start(self):
@@ -138,7 +126,7 @@ class CodeGenerator:
         self.semantic_stack.pop()
         self.output[0] = self.generate_3ac(ThreeAddressCodes.JP,
                                            [self.function_linenos["main"]],
-                                           [OperandTypes.JP_LINENO], backpatch=0)
+                                           [OperandTypes.LINENO], backpatch=0)
 
     def variable(self):
         # Variable just declared is at the head of the symbol_table
@@ -172,38 +160,51 @@ class CodeGenerator:
     def use_pid(self, input_ptr):
         idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
         if self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
-            self.semantic_stack.append([self.find_addr(input_ptr[1]), SSTypes.ADDRESS])
+            addr = self.symbol_table[idx]["address"]
+            if addr is None:
+                # Address not yet allocated -> allocate it now
+                addr = self.next_var_addr
+                self.symbol_table[idx]["address"] = addr
+                self.increment_var_addr()
+
+            self.semantic_stack.append([addr, OperandTypes.ADDRESSING])
         else:
             # Store function name in called_function for jump into said function in #FUNCTION_CALL
             self.function_call_stack.append(input_ptr[1])
 
     def immediate(self, input_ptr):
-        self.semantic_stack.append([int(input_ptr[1]), SSTypes.IMMEDIATE])
+        self.semantic_stack.append([int(input_ptr[1]), OperandTypes.IMMEDIATE])
 
     def indexing_done(self):
         # ss head is the address of the temp or the immediate value that is used as the index
         # ss head - 1 is the address of the array we are indexing
-        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
-            # Indexing using an immediate
-            arr_idx = self.semantic_stack.pop()
-            arr_idx = arr_idx[0]
-        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
-            arr_idx = self.semantic_stack.pop()
-            arr_idx = self.get_temp_by_addr(arr_idx[0])
+        # Calculate the offset
+        operand_types = [self.semantic_stack[-1][1], OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
+        offset_addr = self.next_temp_addr
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.MULT,
+                                          [self.semantic_stack[-1][0], 4, offset_addr],
+                                          [self.semantic_stack[-1][1], OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+        self.increment_temp_addr()
 
-        self.semantic_stack[-1][0] += (arr_idx * 4)
+        # Add offset to the address of the array to get the address of the element
+        # after this element addr holds the address of the element, we can use indirect addressing to access it
+        element_addr = self.next_temp_addr
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ADD,
+                                          [self.semantic_stack[-2][0], offset_addr, element_addr],
+                                          [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+        self.increment_temp_addr()
+        del self.semantic_stack[-2:]
+
+        self.semantic_stack.append([element_addr, OperandTypes.INDIRECT_ADDRESSING])
 
     def assign(self):
-        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
-            # ss head is an immediate value
-            operand_types = [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
-        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
-            # ss head is address of variable/temporary that we want to assign
-            operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
-
         generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                           [self.semantic_stack[-1][0], self.semantic_stack[-2][0]],
-                                          operand_types)
+                                          [self.semantic_stack[-1][1], self.semantic_stack[-2][1]])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         del self.semantic_stack[-2:]
@@ -216,24 +217,14 @@ class CodeGenerator:
 
     def mathop(self, operation):
         # Common helper function for mathematical operations
-        if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
-            operand1_type = OperandTypes.IMMEDIATE
-        elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
-            operand1_type = OperandTypes.ADDRESSING
-
-        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
-            operand2_type = OperandTypes.IMMEDIATE
-        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
-            operand2_type = OperandTypes.ADDRESSING
-
         generated_3ac = self.generate_3ac(operation,
                                           [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
-                                          [operand1_type, operand2_type, OperandTypes.ADDRESSING])
+                                          [self.semantic_stack[-2][1], self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         del self.semantic_stack[-2:]
 
-        self.semantic_stack.append([self.next_temp_addr, SSTypes.ADDRESS])
+        self.semantic_stack.append([self.next_temp_addr, OperandTypes.ADDRESSING])
         self.increment_temp_addr()
 
     def addop(self):
@@ -271,7 +262,7 @@ class CodeGenerator:
         # backpatch jpf to after if
         generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
                                           [self.semantic_stack[-2][0], self.output_lineno + 1],
-                                          [OperandTypes.ADDRESSING, OperandTypes.JP_LINENO],
+                                          [OperandTypes.ADDRESSING, OperandTypes.LINENO],
                                           backpatch=self.semantic_stack[-1][0])
         self.output[self.semantic_stack[-1][0]] = generated_3ac
         del self.semantic_stack[-2:]
@@ -283,27 +274,27 @@ class CodeGenerator:
         # backpatch the uc jump to after else if the first cond was true
         generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                           [self.output_lineno],
-                                          [OperandTypes.JP_LINENO],
+                                          [OperandTypes.LINENO],
                                           backpatch=self.semantic_stack[-1][0])
         self.output[self.semantic_stack[-1][0]] = generated_3ac
         del self.semantic_stack[-1]
 
     def enter_while(self):
         # Save place lineno for uc jump back after a iteration of the loop
-        self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
+        self.semantic_stack.append([self.output_lineno, OperandTypes.LINENO])
 
     def exit_while(self):
         # Backpatch the conditional jump over the while
         generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
                                           [self.semantic_stack[-2][0], self.output_lineno + 1],
-                                          [OperandTypes.ADDRESSING, OperandTypes.JP_LINENO],
+                                          [OperandTypes.ADDRESSING, OperandTypes.LINENO],
                                           self.semantic_stack[-1][0])
         self.output[self.semantic_stack[-1][0]] = generated_3ac
 
         # Jump back to the start of the loop
         generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                           [self.semantic_stack[-3][0]],
-                                          [OperandTypes.JP_LINENO])
+                                          [OperandTypes.LINENO])
         self.output.append(generated_3ac)
 
         self.output_lineno += 1
@@ -314,35 +305,29 @@ class CodeGenerator:
             # Backpatch jump back to caller from function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                               [self.output_lineno + 1],
-                                              [OperandTypes.JP_LINENO],
+                                              [OperandTypes.LINENO],
                                               backpatch=self.semantic_stack[-2][0])
             self.output[self.semantic_stack[-2][0]] = generated_3ac
             del self.semantic_stack[-2]
 
             # Get the address of the return value into the ss
-            self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], SSTypes.ADDRESS])
+            self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], OperandTypes.ADDRESSING])
 
             # Jump to called function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                               [self.function_linenos[self.function_call_stack[-1]]],
-                                              [OperandTypes.JP_LINENO])
+                                              [OperandTypes.LINENO])
             self.function_call_stack.pop()
             self.output.append(generated_3ac)
             self.output_lineno += 1
 
     def ret(self):
         # Store return value here for later use if this function get called
-        self.function_return_value_addrs[self.current_function] = self.next_temp_addr
-
         # Assign return value into a temp
-        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
-            operand_types = [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
-        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
-            operand_types = [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING]
-
+        self.function_return_value_addrs[self.current_function] = self.next_temp_addr
         generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                           [self.semantic_stack[-1][0], self.next_temp_addr],
-                                          operand_types)
+                                          [self.semantic_stack[-1][1], OperandTypes.INDIRECT_ADDRESSING])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.semantic_stack.pop()
