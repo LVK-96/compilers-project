@@ -1,8 +1,7 @@
 """
-Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
-
+import pprint
 from enum import Enum
 from scanner import get_symbol_table_index, SymbolType
 
@@ -64,6 +63,9 @@ class CodeGenerator:
         # Addresses of temps holding function return values
         self.function_return_value_addrs = {}
 
+        # Is the addop + or -
+        self.addop_type = None
+
         self.output_lineno = 0
         self.output = []
 
@@ -90,6 +92,10 @@ class CodeGenerator:
 
         if operation == ThreeAddressCodes.ADD and len(operands) == 3:
             return f"{correct_lineno}\t(ADD, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+        elif operation == ThreeAddressCodes.SUB and len(operands) == 3:
+            return f"{correct_lineno}\t(SUB, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+        elif operation == ThreeAddressCodes.MULT and len(operands) == 3:
+            return f"{correct_lineno}\t(MULT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
         elif operation == ThreeAddressCodes.ASSIGN and len(operands) == 2:
             return f"{correct_lineno}\t(ASSIGN, {formatted_operands[0]}, {formatted_operands[1]}, )"
         elif operation == ThreeAddressCodes.JP and len(operands) == 1:
@@ -187,25 +193,80 @@ class CodeGenerator:
         self.output_lineno += 1
         del self.semantic_stack[-2:]
 
-    def function_call(self):
-        # Backpatch jump back to caller from function
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                          [self.output_lineno + 1],
-                                          [OperandTypes.JP_LINENO],
-                                          backpatch=self.semantic_stack[-2][0])
-        self.output[self.semantic_stack[-2][0]] = generated_3ac
-        del self.semantic_stack[-2]
+    def plus(self):
+        self.addop_type = "+"
 
-        # Get the address of the return value into the ss
-        self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], SSTypes.ADDRESS])
+    def minus(self):
+        self.addop_type = "-"
 
-        # Jump to called function
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                          [self.function_linenos[self.function_call_stack[-1]]],
-                                          [OperandTypes.JP_LINENO])
-        self.function_call_stack.pop()
+    def addop(self):
+        if self.addop_type == "+":
+            operation = ThreeAddressCodes.ADD
+        elif self.addop_type == "-":
+            operation = ThreeAddressCodes.SUB
+
+        if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
+            operand1_type = OperandTypes.IMMEDIATE
+        elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
+            operand1_type = OperandTypes.ADDRESSING
+
+        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
+            operand2_type = OperandTypes.IMMEDIATE
+        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
+            operand2_type = OperandTypes.ADDRESSING
+
+        generated_3ac = self.generate_3ac(operation,
+                                          [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
+                                          [operand1_type, operand2_type, OperandTypes.ADDRESSING])
         self.output.append(generated_3ac)
         self.output_lineno += 1
+        del self.semantic_stack[-2:]
+
+        self.semantic_stack.append([self.next_temp_addr, SSTypes.ADDRESS])
+        self.increment_temp_addr()
+        self.addop_type = None
+
+    def mult(self):
+        if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
+            operand1_type = OperandTypes.IMMEDIATE
+        elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
+            operand1_type = OperandTypes.ADDRESSING
+
+        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
+            operand2_type = OperandTypes.IMMEDIATE
+        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
+            operand2_type = OperandTypes.ADDRESSING
+
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.MULT,
+                                          [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
+                                          [operand1_type, operand2_type, OperandTypes.ADDRESSING])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+        del self.semantic_stack[-2:]
+
+        self.semantic_stack.append([self.next_temp_addr, SSTypes.ADDRESS])
+        self.increment_temp_addr()
+
+    def function_call(self):
+        if self.function_call_stack[-1][0] != "output":
+            # Backpatch jump back to caller from function
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.output_lineno + 1],
+                                              [OperandTypes.JP_LINENO],
+                                              backpatch=self.semantic_stack[-2][0])
+            self.output[self.semantic_stack[-2][0]] = generated_3ac
+            del self.semantic_stack[-2]
+
+            # Get the address of the return value into the ss
+            self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], SSTypes.ADDRESS])
+
+            # Jump to called function
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.function_linenos[self.function_call_stack[-1]]],
+                                              [OperandTypes.JP_LINENO])
+            self.function_call_stack.pop()
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
 
     def ret(self):
         # Store return value here for later use if this function get called
@@ -252,6 +313,14 @@ class CodeGenerator:
             self.indexing_done()
         elif action_symbol == "#ASSIGN":
             self.assign()
+        elif action_symbol == "#PLUS":
+            self.plus()
+        elif action_symbol == "#MINUS":
+            self.minus()
+        elif action_symbol == "#ADDOP":
+            self.addop()
+        elif action_symbol == "#MULT":
+            self.mult()
         elif action_symbol == "#FUNCTION_CALL":
             self.function_call()
         elif action_symbol == "#RETURN":
