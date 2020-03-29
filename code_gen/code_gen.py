@@ -263,7 +263,7 @@ class CodeGenerator:
         self.relop_type = None
 
     def save(self):
-        # Save space for conditional jump to first cond of if-else
+        # Save space for jump
         self.backpatch_save()
 
     def jpf_save(self):
@@ -286,6 +286,27 @@ class CodeGenerator:
                                           backpatch=self.semantic_stack[-1][0])
         self.output[self.semantic_stack[-1][0]] = generated_3ac
         del self.semantic_stack[-1]
+
+    def enter_while(self):
+        # Save place lineno for uc jump back after a iteration of the loop
+        self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
+
+    def exit_while(self):
+        # Backpatch the conditional jump over the while
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
+                                          [self.semantic_stack[-2][0], self.output_lineno + 1],
+                                          [OperandTypes.ADDRESSING, OperandTypes.JP_LINENO],
+                                          self.semantic_stack[-1][0])
+        self.output[self.semantic_stack[-1][0]] = generated_3ac
+
+        # Jump back to the start of the loop
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                          [self.semantic_stack[-3][0]],
+                                          [OperandTypes.JP_LINENO])
+        self.output.append(generated_3ac)
+
+        self.output_lineno += 1
+        del self.semantic_stack[-3:]
 
     def function_call(self):
         if self.function_call_stack[-1][0] != "output":
@@ -371,6 +392,10 @@ class CodeGenerator:
             self.jpf_save()
         elif action_symbol == "#JP":
             self.jp()
+        elif action_symbol == "#ENTER_WHILE":
+            self.enter_while()
+        elif action_symbol == "#EXIT_WHILE":
+            self.exit_while()
         elif action_symbol == "#FUNCTION_CALL":
             self.function_call()
         elif action_symbol == "#RETURN":
