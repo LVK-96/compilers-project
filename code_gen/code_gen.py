@@ -1,6 +1,7 @@
 """
 Jaakko Koskela 526050
 """
+
 import pprint
 from enum import Enum
 from scanner import get_symbol_table_index, SymbolType
@@ -65,6 +66,8 @@ class CodeGenerator:
 
         # Is the addop + or -
         self.addop_type = None
+        # Is the relop < or ==
+        self.relop_type = None
 
         self.output_lineno = 0
         self.output = []
@@ -96,10 +99,16 @@ class CodeGenerator:
             return f"{correct_lineno}\t(SUB, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
         elif operation == ThreeAddressCodes.MULT and len(operands) == 3:
             return f"{correct_lineno}\t(MULT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+        elif operation == ThreeAddressCodes.LT and len(operands) == 3:
+            return f"{correct_lineno}\t(LT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+        elif operation == ThreeAddressCodes.EQ and len(operands) == 3:
+            return f"{correct_lineno}\t(EQ, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
         elif operation == ThreeAddressCodes.ASSIGN and len(operands) == 2:
             return f"{correct_lineno}\t(ASSIGN, {formatted_operands[0]}, {formatted_operands[1]}, )"
         elif operation == ThreeAddressCodes.JP and len(operands) == 1:
             return f"{correct_lineno}\t(JP, {formatted_operands[0]}, , )"
+        elif operation == ThreeAddressCodes.JPF and len(operands) == 2:
+            return f"{correct_lineno}\t(JPF, {formatted_operands[0]}, {formatted_operands[1]}, )"
 
     def find_addr(self, symbol):
         idx = get_symbol_table_index(self.symbol_table, symbol)
@@ -113,13 +122,19 @@ class CodeGenerator:
         self.next_temp_addr += n
         self.next_temp_addr %= self.temporaries_upper
 
+    def backpatch_save(self):
+        # Helper function for saving places for backpatching
+        self.output.append(None)
+        self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
+        self.output_lineno += 1
+
     def start(self):
         # First thing to execute is always a jump into main, make room for that
-        self.output.append(None)
-        self.output_lineno += 1
+        self.backpatch_save()
 
     def end(self):
         # backpatch jump to main
+        self.semantic_stack.pop()
         self.output[0] = self.generate_3ac(ThreeAddressCodes.JP,
                                            [self.function_linenos["main"]],
                                            [OperandTypes.JP_LINENO], backpatch=0)
@@ -199,7 +214,7 @@ class CodeGenerator:
         self.addop_type = "-"
 
     def mathop(self, operation):
-        # Common helper function for addop and mult
+        # Common helper function for mathematical operations
         if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
             operand1_type = OperandTypes.IMMEDIATE
         elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
@@ -231,6 +246,46 @@ class CodeGenerator:
 
     def mult(self):
         self.mathop(ThreeAddressCodes.MULT)
+
+    def lt(self):
+        self.relop_type = "<"
+
+    def eq(self):
+        self.addop_type = "=="
+
+    def relop(self):
+        if self.relop_type == "<":
+            operation = ThreeAddressCodes.LT
+        elif self.addop_type == "==":
+            operation = ThreeAddressCodes.EQ
+
+        self.mathop(operation)
+        self.relop_type = None
+
+    def save(self):
+        # Save space for conditional jump to first cond of if-else
+        self.backpatch_save()
+
+    def jpf_save(self):
+        # backpatch jpf to after if
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
+                                          [self.semantic_stack[-2][0], self.output_lineno + 1],
+                                          [OperandTypes.ADDRESSING, OperandTypes.JP_LINENO],
+                                          backpatch=self.semantic_stack[-1][0])
+        self.output[self.semantic_stack[-1][0]] = generated_3ac
+        del self.semantic_stack[-2:]
+
+        # Save space for uc jump to after else if jpf was not taken
+        self.backpatch_save()
+
+    def jp(self):
+        # backpatch the uc jump to after else if the first cond was true
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                          [self.output_lineno],
+                                          [OperandTypes.JP_LINENO],
+                                          backpatch=self.semantic_stack[-1][0])
+        self.output[self.semantic_stack[-1][0]] = generated_3ac
+        del self.semantic_stack[-1]
 
     def function_call(self):
         if self.function_call_stack[-1][0] != "output":
@@ -272,9 +327,7 @@ class CodeGenerator:
         self.increment_temp_addr()
 
         # Save space for jump back to previous function
-        self.output.append(None)
-        self.semantic_stack.append([self.output_lineno, SSTypes.LINENO])
-        self.output_lineno += 1
+        self.backpatch_save()
 
         # We are ending code gen for this function
         self.curren_function = None
@@ -282,7 +335,7 @@ class CodeGenerator:
     def semantic_actions(self, action_symbol, input_ptr):
         if action_symbol == "#START":
             self.start()
-        if action_symbol == "#END":
+        elif action_symbol == "#END":
             self.end()
         elif action_symbol == "#VARIABLE":
             self.variable()
@@ -306,6 +359,18 @@ class CodeGenerator:
             self.addop()
         elif action_symbol == "#MULT":
             self.mult()
+        elif action_symbol == "#LT":
+            self.lt()
+        elif action_symbol == "#EQ":
+            self.eq()
+        elif action_symbol == "#RELOP":
+            self.relop()
+        elif action_symbol == "#SAVE":
+            self.save()
+        elif action_symbol == "#JPF_SAVE":
+            self.jpf_save()
+        elif action_symbol == "#JP":
+            self.jp()
         elif action_symbol == "#FUNCTION_CALL":
             self.function_call()
         elif action_symbol == "#RETURN":
