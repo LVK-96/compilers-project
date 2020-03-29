@@ -199,12 +199,8 @@ class CodeGenerator:
     def minus(self):
         self.addop_type = "-"
 
-    def addop(self):
-        if self.addop_type == "+":
-            operation = ThreeAddressCodes.ADD
-        elif self.addop_type == "-":
-            operation = ThreeAddressCodes.SUB
-
+    def mathop(self, operation):
+        # Common helper function for addop and mult
         if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
             operand1_type = OperandTypes.IMMEDIATE
         elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
@@ -224,28 +220,18 @@ class CodeGenerator:
 
         self.semantic_stack.append([self.next_temp_addr, SSTypes.ADDRESS])
         self.increment_temp_addr()
+
+    def addop(self):
+        if self.addop_type == "+":
+            operation = ThreeAddressCodes.ADD
+        elif self.addop_type == "-":
+            operation = ThreeAddressCodes.SUB
+
+        self.mathop(operation)
         self.addop_type = None
 
     def mult(self):
-        if self.semantic_stack[-2][1] == SSTypes.IMMEDIATE:
-            operand1_type = OperandTypes.IMMEDIATE
-        elif self.semantic_stack[-2][1] == SSTypes.ADDRESS:
-            operand1_type = OperandTypes.ADDRESSING
-
-        if self.semantic_stack[-1][1] == SSTypes.IMMEDIATE:
-            operand2_type = OperandTypes.IMMEDIATE
-        elif self.semantic_stack[-1][1] == SSTypes.ADDRESS:
-            operand2_type = OperandTypes.ADDRESSING
-
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.MULT,
-                                          [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
-                                          [operand1_type, operand2_type, OperandTypes.ADDRESSING])
-        self.output.append(generated_3ac)
-        self.output_lineno += 1
-        del self.semantic_stack[-2:]
-
-        self.semantic_stack.append([self.next_temp_addr, SSTypes.ADDRESS])
-        self.increment_temp_addr()
+        self.mathop(ThreeAddressCodes.MULT)
 
     def function_call(self):
         if self.function_call_stack[-1][0] != "output":
