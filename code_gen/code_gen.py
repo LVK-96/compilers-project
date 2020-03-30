@@ -100,6 +100,8 @@ class CodeGenerator:
             return f"{correct_lineno}\t(JP, {formatted_operands[0]}, , )"
         elif operation == ThreeAddressCodes.JPF and len(operands) == 2:
             return f"{correct_lineno}\t(JPF, {formatted_operands[0]}, {formatted_operands[1]}, )"
+        elif operation == ThreeAddressCodes.PRINT and len(operands) == 1:
+            return f"{correct_lineno}\t(PRINT, {formatted_operands[0]}, , )"
 
     def find_addr(self, symbol):
         idx = get_symbol_table_index(self.symbol_table, symbol)
@@ -181,19 +183,22 @@ class CodeGenerator:
                 self.increment_var_addr()
 
     def use_pid(self, input_ptr):
-        idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
-        if self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
-            addr = self.symbol_table[idx]["address"]
-            if addr is None:
-                # Address not yet allocated -> allocate it now
-                addr = self.next_var_addr
-                self.symbol_table[idx]["address"] = addr
-                self.increment_var_addr()
+        if input_ptr[1] != "output":
+            idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
+            if self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
+                addr = self.symbol_table[idx]["address"]
+                if addr is None:
+                    # Address not yet allocated -> allocate it now
+                    addr = self.next_var_addr
+                    self.symbol_table[idx]["address"] = addr
+                    self.increment_var_addr()
 
-            self.semantic_stack.append([addr, OperandTypes.ADDRESSING])
+                self.semantic_stack.append([addr, OperandTypes.ADDRESSING])
+            else:
+                # Store function name in called_function for jump into said function in #FUNCTION_CALL
+                self.function_call_stack.append(input_ptr[1])
         else:
-            # Store function name in called_function for jump into said function in #FUNCTION_CALL
-            self.function_call_stack.append(input_ptr[1])
+            self.function_call_stack.append("output")
 
     def immediate(self, input_ptr):
         self.semantic_stack.append([int(input_ptr[1]), OperandTypes.IMMEDIATE])
@@ -299,7 +304,7 @@ class CodeGenerator:
                                           [OperandTypes.LINENO],
                                           backpatch=self.semantic_stack[-1][0])
         self.output[self.semantic_stack[-1][0]] = generated_3ac
-        del self.semantic_stack[-1]
+        self.semantic_stack.pop()
 
     def enter_while(self):
         # Save place lineno for uc jump back after a iteration of the loop
@@ -324,13 +329,6 @@ class CodeGenerator:
 
     def function_called(self):
         if self.function_call_stack[-1] != "output":
-            # Backpatch jump back to caller from function
-            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                              [self.output_lineno + 1],
-                                              [OperandTypes.LINENO],
-                                              backpatch=self.function_returns[self.function_call_stack[-1]][1])
-            self.output[self.function_returns[self.function_call_stack[-1]][1]] = generated_3ac
-
             # Copy the parameters
             params = self.function_params[self.function_call_stack[-1]]
             if len(params) > 0:
@@ -342,6 +340,14 @@ class CodeGenerator:
                     self.output.append(generated_3ac)
                     self.output_lineno += 1
 
+            del self.semantic_stack[-len(params):]
+
+            # Backpatch jump back to caller from function
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.output_lineno + 1],
+                                              [OperandTypes.LINENO],
+                                              backpatch=self.function_returns[self.function_call_stack[-1]][1])
+            self.output[self.function_returns[self.function_call_stack[-1]][1]] = generated_3ac
 
             # Jump to called function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
@@ -353,6 +359,14 @@ class CodeGenerator:
             # Get the address of the return value into the ss
             self.semantic_stack.append([self.function_returns[self.function_call_stack[-1]][0], OperandTypes.ADDRESSING])
             self.function_call_stack.pop()
+        else:
+            # output was called generate the PRINT
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.PRINT,
+                                              [self.semantic_stack[-1][0]],
+                                              [self.semantic_stack[-1][1]])
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
+            self.semantic_stack.pop()
 
     def ret(self):
         # Store return value and linenumber here for later use if this function get called
