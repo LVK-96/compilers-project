@@ -54,6 +54,8 @@ class CodeGenerator:
 
         # Linenumbers of functions in output, used for making jumps
         self.function_linenos = {}
+        # Addresses of function params
+        self.function_params = {}
         # Addresses of temps holding function return values and linenos of return jumps
         self.function_returns = {}
 
@@ -151,11 +153,32 @@ class CodeGenerator:
         # Keep track of the function we are currently generating code for
         self.current_function = self.symbol_table[-1]["name"]
 
+    def stop_param_counter(self):
+        idx = get_symbol_table_index(self.symbol_table, self.current_function)
+        no_params = len(self.symbol_table[idx]["params"])
+
+        # The last no_params elements of the symbol table are function parameters
+        if no_params > 0:
+            params = self.symbol_table[-no_params:]
+            self.function_params[self.current_function] = [p["address"] for p in params]
+        else:
+            self.function_params[self.current_function] = []
+
     def array_size(self, input_ptr):
         # We are declaring a array of size input_ptr[1]
         # Reserve enough space
         if self.symbol_table[-1]["address"] is not None:
             self.increment_var_addr(4 * (int(input_ptr[1]) - 1))  # One 4 byte section was already allocated
+
+    def pid(self, input_ptr):
+        idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
+        if self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
+            addr = self.symbol_table[idx]["address"]
+            if addr is None:
+                # Address not yet allocated -> allocate it now
+                addr = self.next_var_addr
+                self.symbol_table[idx]["address"] = addr
+                self.increment_var_addr()
 
     def use_pid(self, input_ptr):
         idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
@@ -302,12 +325,23 @@ class CodeGenerator:
     def function_called(self):
         if self.function_call_stack[-1] != "output":
             # Backpatch jump back to caller from function
-            # breakpoint()
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                               [self.output_lineno + 1],
                                               [OperandTypes.LINENO],
                                               backpatch=self.function_returns[self.function_call_stack[-1]][1])
             self.output[self.function_returns[self.function_call_stack[-1]][1]] = generated_3ac
+
+            # Copy the parameters
+            params = self.function_params[self.function_call_stack[-1]]
+            if len(params) > 0:
+                given_params = self.symbol_table[-len(params):]
+                for i, param in enumerate(given_params):
+                    generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                                      [self.find_addr(param["name"]), params[i]],
+                                                      [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+                    self.output.append(generated_3ac)
+                    self.output_lineno += 1
+
 
             # Jump to called function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
@@ -349,8 +383,12 @@ class CodeGenerator:
             self.variable()
         elif action_symbol == "#FUNCTION":
             self.function()
+        elif action_symbol == "#STOP_PARAM_COUNTER":
+            self.stop_param_counter()
         elif action_symbol == "#ARRAY_SIZE":
             self.array_size(input_ptr)
+        elif action_symbol == "#PID":
+            self.pid(input_ptr)
         elif action_symbol == "#USE_PID":
             self.use_pid(input_ptr)
         elif action_symbol == "#IMMEDIATE":
