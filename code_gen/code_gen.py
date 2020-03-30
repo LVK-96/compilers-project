@@ -89,7 +89,9 @@ class CodeGenerator:
         elif operation == ThreeAddressCodes.SUB and len(operands) == 3:
             return f"{correct_lineno}\t(SUB, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
         elif operation == ThreeAddressCodes.MULT and len(operands) == 3:
-            return f"{correct_lineno}\t(MULT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+            return (
+                f"{correct_lineno}\t(MULT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
+            )
         elif operation == ThreeAddressCodes.LT and len(operands) == 3:
             return f"{correct_lineno}\t(LT, {formatted_operands[0]}, {formatted_operands[1]}, {formatted_operands[2]})"
         elif operation == ThreeAddressCodes.EQ and len(operands) == 3:
@@ -183,22 +185,25 @@ class CodeGenerator:
                 self.increment_var_addr()
 
     def use_pid(self, input_ptr):
-        if input_ptr[1] != "output":
-            idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
-            if self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]:
-                addr = self.symbol_table[idx]["address"]
-                if addr is None:
-                    # Address not yet allocated -> allocate it now
-                    addr = self.next_var_addr
-                    self.symbol_table[idx]["address"] = addr
-                    self.increment_var_addr()
+        idx = get_symbol_table_index(self.symbol_table, input_ptr[1])
+        if (
+            idx is not None
+            and self.symbol_table[idx]["type"] not in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID]
+        ):
+            addr = self.symbol_table[idx]["address"]
+            if addr is None:
+                # Address not yet allocated -> allocate it now
+                addr = self.next_var_addr
+                self.symbol_table[idx]["address"] = addr
+                self.increment_var_addr()
 
-                self.semantic_stack.append([addr, OperandTypes.ADDRESSING])
-            else:
-                # Store function name in called_function for jump into said function in #FUNCTION_CALL
-                self.function_call_stack.append(input_ptr[1])
-        else:
-            self.function_call_stack.append("output")
+            self.semantic_stack.append([addr, OperandTypes.ADDRESSING])
+        elif (
+            (idx is not None and self.symbol_table[idx]["type"] in [SymbolType.FUNCTION_INT, SymbolType.FUNCTION_VOID])
+            or input_ptr[1] == "output"
+        ):
+            # Store function name in called_function for jump into said function in #FUNCTION_CALL
+            self.function_call_stack.append(input_ptr[1])
 
     def immediate(self, input_ptr):
         self.semantic_stack.append([int(input_ptr[1]), OperandTypes.IMMEDIATE])
@@ -244,9 +249,11 @@ class CodeGenerator:
 
     def mathop(self, operation):
         # Common helper function for mathematical operations
-        generated_3ac = self.generate_3ac(operation,
-                                          [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
-                                          [self.semantic_stack[-2][1], self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
+        generated_3ac = self.generate_3ac(
+            operation,
+            [self.semantic_stack[-2][0], self.semantic_stack[-1][0], self.next_temp_addr],
+            [self.semantic_stack[-2][1], self.semantic_stack[-1][1], OperandTypes.ADDRESSING]
+        )
         self.output.append(generated_3ac)
         self.output_lineno += 1
         del self.semantic_stack[-2:]
@@ -357,7 +364,9 @@ class CodeGenerator:
             self.output_lineno += 1
 
             # Get the address of the return value into the ss
-            self.semantic_stack.append([self.function_returns[self.function_call_stack[-1]][0], OperandTypes.ADDRESSING])
+            self.semantic_stack.append(
+                    [self.function_returns[self.function_call_stack[-1]][0], OperandTypes.ADDRESSING]
+            )
             self.function_call_stack.pop()
         else:
             # output was called generate the PRINT
