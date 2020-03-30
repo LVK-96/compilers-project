@@ -54,13 +54,13 @@ class CodeGenerator:
 
         # Linenumbers of functions in output, used for making jumps
         self.function_linenos = {}
-        # Addresses of temps holding function return values
-        self.function_return_value_addrs = {}
+        # Addresses of temps holding function return values and linenos of return jumps
+        self.function_returns = {}
 
         # Is the addop + or -
-        self.addop_type = None
+        self.addop_type = []
         # Is the relop < or ==
-        self.relop_type = None
+        self.relop_type = []
 
         self.output_lineno = 0
         self.output = []
@@ -179,7 +179,6 @@ class CodeGenerator:
         # ss head is the address of the temp or the immediate value that is used as the index
         # ss head - 1 is the address of the array we are indexing
         # Calculate the offset
-        operand_types = [self.semantic_stack[-1][1], OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING]
         offset_addr = self.next_temp_addr
         generated_3ac = self.generate_3ac(ThreeAddressCodes.MULT,
                                           [self.semantic_stack[-1][0], 4, offset_addr],
@@ -210,10 +209,10 @@ class CodeGenerator:
         del self.semantic_stack[-2:]
 
     def plus(self):
-        self.addop_type = "+"
+        self.addop_type.append("+")
 
     def minus(self):
-        self.addop_type = "-"
+        self.addop_type.append("-")
 
     def mathop(self, operation):
         # Common helper function for mathematical operations
@@ -228,31 +227,31 @@ class CodeGenerator:
         self.increment_temp_addr()
 
     def addop(self):
-        if self.addop_type == "+":
+        if self.addop_type[-1] == "+":
             operation = ThreeAddressCodes.ADD
-        elif self.addop_type == "-":
+        elif self.addop_type[-1] == "-":
             operation = ThreeAddressCodes.SUB
 
         self.mathop(operation)
-        self.addop_type = None
+        self.addop_type.pop()
 
     def mult(self):
         self.mathop(ThreeAddressCodes.MULT)
 
     def lt(self):
-        self.relop_type = "<"
+        self.relop_type.append("<")
 
     def eq(self):
-        self.addop_type = "=="
+        self.relop_type.append("==")
 
     def relop(self):
-        if self.relop_type == "<":
+        if self.relop_type[-1] == "<":
             operation = ThreeAddressCodes.LT
-        elif self.addop_type == "==":
+        elif self.relop_type[-1] == "==":
             operation = ThreeAddressCodes.EQ
 
         self.mathop(operation)
-        self.relop_type = None
+        self.relop_type.pop()
 
     def save(self):
         # Save space for jump
@@ -300,41 +299,43 @@ class CodeGenerator:
         self.output_lineno += 1
         del self.semantic_stack[-3:]
 
-    def function_call(self):
-        if self.function_call_stack[-1][0] != "output":
+    def function_called(self):
+        if self.function_call_stack[-1] != "output":
             # Backpatch jump back to caller from function
+            # breakpoint()
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                               [self.output_lineno + 1],
                                               [OperandTypes.LINENO],
-                                              backpatch=self.semantic_stack[-2][0])
-            self.output[self.semantic_stack[-2][0]] = generated_3ac
-            del self.semantic_stack[-2]
-
-            # Get the address of the return value into the ss
-            self.semantic_stack.append([self.function_return_value_addrs[self.function_call_stack[-1]], OperandTypes.ADDRESSING])
+                                              backpatch=self.function_returns[self.function_call_stack[-1]][1])
+            self.output[self.function_returns[self.function_call_stack[-1]][1]] = generated_3ac
 
             # Jump to called function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
                                               [self.function_linenos[self.function_call_stack[-1]]],
                                               [OperandTypes.LINENO])
-            self.function_call_stack.pop()
             self.output.append(generated_3ac)
             self.output_lineno += 1
 
+            # Get the address of the return value into the ss
+            self.semantic_stack.append([self.function_returns[self.function_call_stack[-1]][0], OperandTypes.ADDRESSING])
+            self.function_call_stack.pop()
+
     def ret(self):
-        # Store return value here for later use if this function get called
+        # Store return value and linenumber here for later use if this function get called
+        self.function_returns[self.current_function] = [self.next_temp_addr, self.output_lineno + 1]
+
         # Assign return value into a temp
-        self.function_return_value_addrs[self.current_function] = self.next_temp_addr
         generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                           [self.semantic_stack[-1][0], self.next_temp_addr],
-                                          [self.semantic_stack[-1][1], OperandTypes.INDIRECT_ADDRESSING])
+                                          [self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.semantic_stack.pop()
         self.increment_temp_addr()
 
         # Save space for jump back to previous function
-        self.backpatch_save()
+        self.output.append(None)
+        self.output_lineno += 1
 
         # We are ending code gen for this function
         self.curren_function = None
@@ -382,8 +383,11 @@ class CodeGenerator:
             self.enter_while()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
-        elif action_symbol == "#FUNCTION_CALL":
-            self.function_call()
+        elif action_symbol == "#ARGUMENT_TO_PASS":
+            # self.argument_to_pass()
+            pass
+        elif action_symbol == "#FUNCTION_CALLED":
+            self.function_called()
         elif action_symbol == "#RETURN":
             self.ret()
         else:
