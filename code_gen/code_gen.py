@@ -56,8 +56,14 @@ class CodeGenerator:
         self.function_linenos = {}
         # Addresses of function params
         self.function_params = {}
-        # Addresses of temps holding function return values and linenos of return jumps
+        # Addresses of temps holding function return values and linenos and return addresses of return jumps
         self.function_returns = {}
+
+        # Is the return statement a empty return (return;)
+        self.empty_ret_flag = False
+
+        # How many chained assignments we have
+        self.chained_assignments = 0
 
         # Is the addop + or -
         self.addop_type = []
@@ -142,6 +148,7 @@ class CodeGenerator:
             self.increment_var_addr()
 
     def function(self):
+
         # Function just declared is at the head of the symbol table
         # Functions dont have addresses so remove address field from the symbol table entry
         if (
@@ -156,6 +163,10 @@ class CodeGenerator:
 
         # Keep track of the function we are currently generating code for
         self.current_function = self.symbol_table[-1]["name"]
+
+    def end_scope(self):
+        # We are ending code gen for the previous function (if there was one)
+        self.current_function = None
 
     def stop_param_counter(self):
         idx = get_symbol_table_index(self.symbol_table, self.current_function)
@@ -233,13 +244,21 @@ class CodeGenerator:
 
         self.semantic_stack.append([element_addr, OperandTypes.INDIRECT_ADDRESSING])
 
+    def assignment_chain(self):
+        self.chained_assignments += 1
+
     def assign(self):
         generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                           [self.semantic_stack[-1][0], self.semantic_stack[-2][0]],
                                           [self.semantic_stack[-1][1], self.semantic_stack[-2][1]])
         self.output.append(generated_3ac)
         self.output_lineno += 1
-        del self.semantic_stack[-2:]
+        if self.chained_assignments < 2:
+            self.chained_assignments -= 1
+            del self.semantic_stack[-2:]
+        else:
+            self.chained_assignments -= 1
+            self.semantic_stack.pop()
 
     def plus(self):
         self.addop_type.append("+")
@@ -339,22 +358,31 @@ class CodeGenerator:
             # Copy the parameters
             params = self.function_params[self.function_call_stack[-1]]
             if len(params) > 0:
-                given_params = self.symbol_table[-len(params):]
-                for i, param in enumerate(given_params):
+                given_params = self.semantic_stack[-len(params):]
+                for i, param in enumerate(params):
                     generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
-                                                      [self.find_addr(param["name"]), params[i]],
-                                                      [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+                                                      [given_params[i][0], param],
+                                                      [given_params[i][1], OperandTypes.ADDRESSING])
                     self.output.append(generated_3ac)
                     self.output_lineno += 1
 
             del self.semantic_stack[-len(params):]
 
+            # Put the return address into the temp that holds the return addr for the called function
+            ret_addr_temp = self.function_returns[self.function_call_stack[-1]][0][2]
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                              [self.output_lineno + 2, ret_addr_temp],
+                                              [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING])
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
+
             # Backpatch jump back to caller from function
-            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                              [self.output_lineno + 1],
-                                              [OperandTypes.LINENO],
-                                              backpatch=self.function_returns[self.function_call_stack[-1]][1])
-            self.output[self.function_returns[self.function_call_stack[-1]][1]] = generated_3ac
+            for r in self.function_returns[self.function_call_stack[-1]]:
+                generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                                  [ret_addr_temp],
+                                                  [OperandTypes.INDIRECT_ADDRESSING],
+                                                  backpatch=r[1])
+                self.output[r[1]] = generated_3ac
 
             # Jump to called function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
@@ -365,7 +393,7 @@ class CodeGenerator:
 
             # Get the address of the return value into the ss
             self.semantic_stack.append(
-                    [self.function_returns[self.function_call_stack[-1]][0], OperandTypes.ADDRESSING]
+                    [self.function_returns[self.function_call_stack[-1]][0][0], OperandTypes.ADDRESSING]
             )
             self.function_call_stack.pop()
         else:
@@ -377,25 +405,45 @@ class CodeGenerator:
             self.output_lineno += 1
             self.semantic_stack.pop()
 
+    def empty_ret(self):
+        self.empty_ret_flag = True
+
     def ret(self):
-        # Store return value and linenumber here for later use if this function get called
-        self.function_returns[self.current_function] = [self.next_temp_addr, self.output_lineno + 1]
+        if not self.empty_ret_flag and self.current_function != "main":
+            # Store return value and linenumber here for later use if this function get called
+            addr_before_increment = self.next_temp_addr
+            if self.current_function in self.function_returns.keys():
+                self.function_returns[self.current_function].append(
+                    [
+                        self.function_returns[self.current_function][0][0],
+                        self.output_lineno + 1,
+                        self.function_returns[self.current_function][0][2]
+                    ]
+                )
+            else:
+                self.increment_temp_addr()
+                self.function_returns[self.current_function] = (
+                    [[addr_before_increment, self.output_lineno + 1, self.next_temp_addr]]
+                )
+                self.increment_temp_addr()
 
-        # Assign return value into a temp
-        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
-                                          [self.semantic_stack[-1][0], self.next_temp_addr],
-                                          [self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
-        self.output.append(generated_3ac)
-        self.output_lineno += 1
-        self.semantic_stack.pop()
-        self.increment_temp_addr()
+            # Assign return value into the reserved temp
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                              [
+                                                  self.semantic_stack[-1][0],
+                                                  self.function_returns[self.current_function][0][0]
+                                              ],
+                                              [self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
+            self.semantic_stack.pop()
 
-        # Save space for jump back to previous function
-        self.output.append(None)
-        self.output_lineno += 1
+        if self.current_function != "main":
+            # Save space for jump back to previous function
+            self.output.append(None)
+            self.output_lineno += 1
 
-        # We are ending code gen for this function
-        self.curren_function = None
+        self.empty_ret_flag = False
 
     def semantic_actions(self, action_symbol, input_ptr):
         if action_symbol == "#START":
@@ -406,6 +454,8 @@ class CodeGenerator:
             self.variable()
         elif action_symbol == "#FUNCTION":
             self.function()
+        elif action_symbol == "#END_SCOPE":
+            self.end_scope()
         elif action_symbol == "#STOP_PARAM_COUNTER":
             self.stop_param_counter()
         elif action_symbol == "#ARRAY_SIZE":
@@ -418,6 +468,8 @@ class CodeGenerator:
             self.immediate(input_ptr)
         elif action_symbol == "#INDEXING_DONE":
             self.indexing_done()
+        elif action_symbol == "#ASSIGNMENT_CHAIN":
+            self.assignment_chain()
         elif action_symbol == "#ASSIGN":
             self.assign()
         elif action_symbol == "#PLUS":
@@ -444,15 +496,18 @@ class CodeGenerator:
             self.enter_while()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
-        elif action_symbol == "#ARGUMENT_TO_PASS":
-            # self.argument_to_pass()
-            pass
         elif action_symbol == "#FUNCTION_CALLED":
             self.function_called()
+        elif action_symbol == "#EMPTY_RETURN":
+            self.empty_ret()
         elif action_symbol == "#RETURN":
             self.ret()
         else:
             pass
+
+        # print(action_symbol)
+        # pprint.pprint(self.semantic_stack)
+        # print()
 
     def write_output_to_file(self):
         with open("output.txt", "w") as f:
