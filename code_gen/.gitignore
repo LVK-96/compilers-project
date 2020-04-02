@@ -2,6 +2,7 @@
 firsts.json
 follows.json
 samples/Tester/*
+samples/Tester2/*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
