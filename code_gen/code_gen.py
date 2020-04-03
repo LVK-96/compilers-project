@@ -65,6 +65,9 @@ class CodeGenerator:
         # How many chained assignments we have
         self.chained_assignments = 0
 
+        # Array of saved linenos for breaks
+        self.break_counter = []
+
         # Is the addop + or -
         self.addop_type = []
         # Is the relop < or ==
@@ -337,10 +340,30 @@ class CodeGenerator:
         self.semantic_stack.pop()
 
     def enter_while(self):
-        # Save place lineno for uc jump back after a iteration of the loop
+        # Save lineno for uc jump back after a iteration of the loop
         self.semantic_stack.append([self.output_lineno, OperandTypes.LINENO])
 
+    def brk(self):
+        self.output.append(None)
+        self.break_counter.append([self.output_lineno, OperandTypes.LINENO])
+        self.output_lineno += 1
+
     def exit_while(self):
+        # print(self.break_counter)
+        # pprint.pprint(self.semantic_stack)
+        # print()
+        # pprint.pprint(self.output)
+        # print()
+
+        # Backpatch breaks
+        while len(self.break_counter) > 0:
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.output_lineno + 1],
+                                              [OperandTypes.LINENO],
+                                              self.break_counter[-1][0])
+            self.output[self.break_counter[-1][0]] = generated_3ac
+            self.break_counter.pop()
+
         # Backpatch the conditional jump over the while
         generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
                                           [self.semantic_stack[-2][0], self.output_lineno + 1],
@@ -387,10 +410,19 @@ class CodeGenerator:
             self.output.append(generated_3ac)
             self.output_lineno += 1
 
-            # Get the address of the return value into the ss
+            # Assign value from the return address into a new temp
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                              [self.function_returns[self.function_call_stack[-1]][0][0], self.next_temp_addr],
+                                              [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
+
+            # Get the address into the ss
             self.semantic_stack.append(
-                    [self.function_returns[self.function_call_stack[-1]][0][0], OperandTypes.ADDRESSING]
+                    [self.next_temp_addr, OperandTypes.ADDRESSING]
             )
+            self.increment_temp_addr()
+
             self.function_call_stack.pop()
         else:
             # output was called generate the PRINT
@@ -485,6 +517,8 @@ class CodeGenerator:
             self.jp()
         elif action_symbol == "#ENTER_WHILE":
             self.enter_while()
+        elif action_symbol == "#BREAK":
+            self.brk()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
         elif action_symbol == "#FUNCTION_CALLED":

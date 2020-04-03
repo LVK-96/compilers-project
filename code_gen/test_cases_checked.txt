@@ -6,5 +6,5 @@ T3        | OK
 T4        | OK
 T5        | OK
 T6        | switch case
-T7        | break out from a loop
-T8        | dunno lol
+T7        | OK
+T8        | array as an argument to a function
