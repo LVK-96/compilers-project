@@ -7,7 +7,7 @@ sample_runtime_output="${tester}/sample_runtime_out.txt"
 runtime="${tester}/tester_Linux.out"
 compiled_program_path="${tester}/output.txt"
 
-for i in {1..4}
+for i in {1..7}
 do
     case="T$i"
     input="./samples/${case}/input.txt"
