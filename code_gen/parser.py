@@ -356,6 +356,7 @@ def main(argv):
     filename = "input.txt"
     if len(argv) > 0:
         filename = argv[0]
+
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
@@ -369,6 +370,7 @@ def main(argv):
         data,
         filename
     )
+
     while True:
         parser.step()
         if (len(parser.stack) < 1):
