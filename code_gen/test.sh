@@ -14,14 +14,14 @@ do
     # Run our compiler and pipe the runtime output to a .txt file
     python parser.py $input
     cp output.txt $tester
-    cd $tester && pwd && $runtime > $runtime_output 2> /dev/null
+    cd $tester && $runtime > $runtime_output 2> /dev/null
     cd ../..
-
-    echo ""
 
     # Run our compiler and pipe the runtime output to a .txt file
     cp $sample_compiler_output $tester
     cd $tester && $runtime > $sample_runtime_output 2> /dev/null
     diff -i -w -s -c $runtime_output $sample_runtime_output
     cd ../..
+
+    echo ""
 done
