@@ -182,14 +182,16 @@ class CodeGenerator:
         # The last no_params elements of the symbol table are function parameters
         if no_params > 0:
             params = self.symbol_table[-no_params:]
-            self.function_params[self.current_function] = [p["address"] for p in params]
+            self.function_params[self.current_function] = [[p["name"], p["address"], p["type"]] for p in params]
         else:
             self.function_params[self.current_function] = []
 
     def array_size(self, input_ptr):
         # We are declaring a array of size input_ptr[1]
         # Reserve enough space
+
         if self.symbol_table[-1]["address"] is not None:
+            # Store arrays first addr in a temp, it is used for indirect addressing
             self.increment_var_addr(4 * (int(input_ptr[1]) - 1))  # One 4 byte section was already allocated
 
     def pid(self, input_ptr):
@@ -240,10 +242,19 @@ class CodeGenerator:
 
         # Add offset to the address of the array to get the address of the element
         # after this element addr holds the address of the element, we can use indirect addressing to access it
+        array_name = [
+            s["name"] for s in self.symbol_table if "address" in s.keys() and s["address"] == self.semantic_stack[-2][0]
+        ][0]
+
+        array_operand_type = OperandTypes.IMMEDIATE
+        param_names = [p[0] for p in self.function_params[self.current_function]]
+        if array_name in param_names:
+            array_operand_type = OperandTypes.ADDRESSING
+
         element_addr = self.next_temp_addr
         generated_3ac = self.generate_3ac(ThreeAddressCodes.ADD,
                                           [self.semantic_stack[-2][0], offset_addr, element_addr],
-                                          [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+                                          [array_operand_type, OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.increment_temp_addr()
@@ -349,12 +360,6 @@ class CodeGenerator:
         self.output_lineno += 1
 
     def exit_while(self):
-        # print(self.break_counter)
-        # pprint.pprint(self.semantic_stack)
-        # print()
-        # pprint.pprint(self.output)
-        # print()
-
         # Backpatch breaks
         while len(self.break_counter) > 0:
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
@@ -387,15 +392,21 @@ class CodeGenerator:
             if len(params) > 0:
                 given_params = self.semantic_stack[-len(params):]
                 for i, param in enumerate(params):
-                    generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
-                                                      [given_params[i][0], param],
-                                                      [given_params[i][1], OperandTypes.ADDRESSING])
+                    if param[2] not in [SymbolType.ARRAY_INT, SymbolType.ARRAY_VOID]:
+                        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                                          [given_params[i][0], param[1]],
+                                                          [given_params[i][1], OperandTypes.ADDRESSING])
+                    else:
+                        # Assign the address of the array into the variable
+                        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                                          [given_params[i][0], param[1]],
+                                                          [OperandTypes.IMMEDIATE, OperandTypes.ADDRESSING])
                     self.output.append(generated_3ac)
                     self.output_lineno += 1
 
             del self.semantic_stack[-len(params):]
 
-            # Put the return address into the temp that holds the return addr for the called function
+            # Put the return lineno into the temp that holds the return addr for the called function
             ret_addr_temp = self.function_returns[self.function_call_stack[-1]][0][2]
             generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                               [self.output_lineno + 2, ret_addr_temp],
@@ -410,18 +421,20 @@ class CodeGenerator:
             self.output.append(generated_3ac)
             self.output_lineno += 1
 
-            # Assign value from the return address into a new temp
-            generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
-                                              [self.function_returns[self.function_call_stack[-1]][0][0], self.next_temp_addr],
-                                              [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
-            self.output.append(generated_3ac)
-            self.output_lineno += 1
+            if self.function_returns[self.function_call_stack[-1]][0][0]:
+                # It was not an empty return
+                # Assign value from the return address into a new temp
+                generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                                  [self.function_returns[self.function_call_stack[-1]][0][0], self.next_temp_addr],
+                                                  [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
+                self.output.append(generated_3ac)
+                self.output_lineno += 1
 
-            # Get the address into the ss
-            self.semantic_stack.append(
-                    [self.next_temp_addr, OperandTypes.ADDRESSING]
-            )
-            self.increment_temp_addr()
+                # Get the address into the ss
+                self.semantic_stack.append(
+                        [self.next_temp_addr, OperandTypes.ADDRESSING]
+                )
+                self.increment_temp_addr()
 
             self.function_call_stack.pop()
         else:
@@ -458,6 +471,8 @@ class CodeGenerator:
                 self.output.append(generated_3ac)
                 self.output_lineno += 1
                 self.semantic_stack.pop()
+            else:
+                self.function_returns[self.current_function][0][0] = None
 
             # Jump back to previous function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
