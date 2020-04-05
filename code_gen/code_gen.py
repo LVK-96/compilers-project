@@ -68,6 +68,9 @@ class CodeGenerator:
         # Array of saved linenos for breaks
         self.break_counter = []
 
+        # Continue jump target
+        self.continue_jump_target = None
+
         # Is the addop + or -
         self.addop_type = []
         # Is the relop < or ==
@@ -360,10 +363,23 @@ class CodeGenerator:
         # Save lineno for uc jump back after a iteration of the loop
         self.semantic_stack.append([self.output_lineno, OperandTypes.LINENO])
 
+        # Save continue jump target to a separate variable
+        # Kind of a hacky and stupid way of doing this but whatever
+        self.continue_jump_target = self.output_lineno
+
     def brk(self):
         self.output.append(None)
         self.break_counter.append([self.output_lineno, OperandTypes.LINENO])
         self.output_lineno += 1
+
+    def cont(self):
+        # Jump back to the start of the loop
+        if self.continue_jump_target is not None:
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.continue_jump_target],
+                                              [OperandTypes.LINENO])
+            self.output.append(generated_3ac)
+            self.output_lineno += 1
 
     def exit_while(self):
         # Backpatch breaks
@@ -390,6 +406,9 @@ class CodeGenerator:
 
         self.output_lineno += 1
         del self.semantic_stack[-3:]
+
+        # Clear continue jump target
+        self.continue_jump_target = None
 
     def function_called(self):
         if self.function_call_stack[-1] != "output":
@@ -427,7 +446,7 @@ class CodeGenerator:
             self.output.append(generated_3ac)
             self.output_lineno += 1
 
-            if self.function_returns[self.function_call_stack[-1]][0][0]:
+            if self.function_returns[self.function_call_stack[-1]][0][0] is not None:
                 # It was not an empty return
                 # Assign value from the return address into a new temp
                 generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
@@ -542,6 +561,8 @@ class CodeGenerator:
             self.enter_while()
         elif action_symbol == "#BREAK":
             self.brk()
+        elif action_symbol == "#CONTINUE":
+            self.cont()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
         elif action_symbol == "#FUNCTION_CALLED":
