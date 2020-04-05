@@ -69,7 +69,7 @@ class CodeGenerator:
         self.break_counter = []
 
         # Continue jump target
-        self.continue_jump_target = None
+        self.continue_jump_target = []
 
         # Is the addop + or -
         self.addop_type = []
@@ -365,7 +365,7 @@ class CodeGenerator:
 
         # Save continue jump target to a separate variable
         # Kind of a hacky and stupid way of doing this but whatever
-        self.continue_jump_target = self.output_lineno
+        self.continue_jump_target.append(self.output_lineno)
 
     def brk(self):
         self.output.append(None)
@@ -374,9 +374,9 @@ class CodeGenerator:
 
     def cont(self):
         # Jump back to the start of the loop
-        if self.continue_jump_target is not None:
+        if len(self.continue_jump_target) > 0:
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                              [self.continue_jump_target],
+                                              [self.continue_jump_target[-1]],
                                               [OperandTypes.LINENO])
             self.output.append(generated_3ac)
             self.output_lineno += 1
@@ -408,7 +408,7 @@ class CodeGenerator:
         del self.semantic_stack[-3:]
 
         # Clear continue jump target
-        self.continue_jump_target = None
+        self.continue_jump_target.pop()
 
     def function_called(self):
         if self.function_call_stack[-1] != "output":
