@@ -48,7 +48,7 @@ class CodeGenerator:
         self.next_temp_addr = self.temporaries_lower
 
         # Name of the function we are currently in
-        self.current_function = None
+        self.current_function = []
 
         self.function_call_stack = []
 
@@ -161,30 +161,36 @@ class CodeGenerator:
 
         # Whatever comes next is the first line of this function
         # Store it for possible later function calls so we can jump to this line
-        self.function_linenos[self.symbol_table[-1]["name"]] = self.output_lineno
+        # self.function_linenos[self.symbol_table[-1]["name"]] = self.output_lineno
 
         # Keep track of the function we are currently generating code for
-        self.current_function = self.symbol_table[-1]["name"]
+        self.current_function.append(self.symbol_table[-1]["name"])
+
+    def statements_begin(self):
+        # Whatever comes next is the first line of this function
+        # Store it for possible later function calls so we can jump to this line
+        if self.current_function[-1] not in self.function_linenos.keys():
+            self.function_linenos[self.current_function[-1]] = self.output_lineno
 
     def end_scope(self):
         # We are ending code gen for the previous function (if there was one)
         # If there was no return just handle it like it was an empty return
-        if self.current_function not in self.function_returns.keys():
+        if self.current_function[-1] not in self.function_returns.keys():
             self.empty_ret_flag = True
             self.ret()
 
-        self.current_function = None
+        self.current_function.pop()
 
     def stop_param_counter(self):
-        idx = get_symbol_table_index(self.symbol_table, self.current_function)
+        idx = get_symbol_table_index(self.symbol_table, self.current_function[-1])
         no_params = len(self.symbol_table[idx]["params"])
 
         # The last no_params elements of the symbol table are function parameters
         if no_params > 0:
             params = self.symbol_table[-no_params:]
-            self.function_params[self.current_function] = [[p["name"], p["address"], p["type"]] for p in params]
+            self.function_params[self.current_function[-1]] = [[p["name"], p["address"], p["type"]] for p in params]
         else:
-            self.function_params[self.current_function] = []
+            self.function_params[self.current_function[-1]] = []
 
     def array_size(self, input_ptr):
         # We are declaring a array of size input_ptr[1]
@@ -247,7 +253,7 @@ class CodeGenerator:
         ][0]
 
         array_operand_type = OperandTypes.IMMEDIATE
-        param_names = [p[0] for p in self.function_params[self.current_function]]
+        param_names = [p[0] for p in self.function_params[self.current_function[-1]]]
         if array_name in param_names:
             array_operand_type = OperandTypes.ADDRESSING
 
@@ -450,12 +456,12 @@ class CodeGenerator:
         self.empty_ret_flag = True
 
     def ret(self):
-        if self.current_function != "main":
+        if self.current_function[-1] != "main":
             # Store return value and linenumber here for later use if this function get called
             addr_before_increment = self.next_temp_addr
-            if self.current_function not in self.function_returns.keys():
+            if self.current_function[-1] not in self.function_returns.keys():
                 self.increment_temp_addr()
-                self.function_returns[self.current_function] = (
+                self.function_returns[self.current_function[-1]] = (
                     [[addr_before_increment, self.output_lineno + 1, self.next_temp_addr]]
                 )
                 self.increment_temp_addr()
@@ -465,18 +471,18 @@ class CodeGenerator:
                 generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
                                                   [
                                                       self.semantic_stack[-1][0],
-                                                      self.function_returns[self.current_function][0][0]
+                                                      self.function_returns[self.current_function[-1]][0][0]
                                                   ],
                                                   [self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
                 self.output.append(generated_3ac)
                 self.output_lineno += 1
                 self.semantic_stack.pop()
             else:
-                self.function_returns[self.current_function][0][0] = None
+                self.function_returns[self.current_function[-1]][0][0] = None
 
             # Jump back to previous function
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
-                                              [self.function_returns[self.current_function][0][2]],
+                                              [self.function_returns[self.current_function[-1]][0][2]],
                                               [OperandTypes.INDIRECT_ADDRESSING])
             self.output.append(generated_3ac)
             self.output_lineno += 1
@@ -492,6 +498,8 @@ class CodeGenerator:
             self.variable()
         elif action_symbol == "#FUNCTION":
             self.function()
+        elif action_symbol == "#STATEMENTS_BEGIN":
+            self.statements_begin()
         elif action_symbol == "#ENDSCOPE":
             self.end_scope()
         elif action_symbol == "#STOP_PARAM_COUNTER":

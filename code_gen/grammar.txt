@@ -11,7 +11,7 @@ Param-list-void-abtar -> #PID ID Param-prime Param-list | EPSILON
 Param-list -> , Param Param-list | EPSILON
 Param -> Declaration-initial Param-prime
 Param-prime -> #ARRAY #ARRAY_PARAM [ ] | #PARAM EPSILON
-Compound-stmt -> { Declaration-list Statement-list }
+Compound-stmt -> { Declaration-list #STATEMENTS_BEGIN Statement-list }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | Switch-stmt
 Expression-stmt -> #START_TYPE_CHECK Expression #TYPE_CHECK ; | #CONTINUE continue ; | #BREAK break ; | #TYPE_CHECK ;
