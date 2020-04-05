@@ -365,6 +365,18 @@ class CodeGenerator:
         self.break_counter.append([self.output_lineno, OperandTypes.LINENO])
         self.output_lineno += 1
 
+    def cont(self):
+        # Jump back to the start of the loop
+        if self.semantic_stack[-3][1] == OperandTypes.LINENO:
+            correct_lineno = self.semantic_stack[-3][0]
+        else:
+            correct_lineno = self.semantic_stack[-2][0]
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                          [correct_lineno],
+                                          [OperandTypes.LINENO])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+
     def exit_while(self):
         # Backpatch breaks
         while len(self.break_counter) > 0:
@@ -542,6 +554,8 @@ class CodeGenerator:
             self.enter_while()
         elif action_symbol == "#BREAK":
             self.brk()
+        elif action_symbol == "#CONTINUE":
+            self.cont()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
         elif action_symbol == "#FUNCTION_CALLED":
