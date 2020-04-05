@@ -162,10 +162,6 @@ class CodeGenerator:
         ):
             del self.symbol_table[-1]["address"]
 
-        # Whatever comes next is the first line of this function
-        # Store it for possible later function calls so we can jump to this line
-        # self.function_linenos[self.symbol_table[-1]["name"]] = self.output_lineno
-
         # Keep track of the function we are currently generating code for
         self.current_function.append(self.symbol_table[-1]["name"])
 
@@ -450,7 +446,10 @@ class CodeGenerator:
                 # It was not an empty return
                 # Assign value from the return address into a new temp
                 generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
-                                                  [self.function_returns[self.function_call_stack[-1]][0][0], self.next_temp_addr],
+                                                  [
+                                                      self.function_returns[self.function_call_stack[-1]][0][0],
+                                                      self.next_temp_addr
+                                                  ],
                                                   [OperandTypes.ADDRESSING, OperandTypes.ADDRESSING])
                 self.output.append(generated_3ac)
                 self.output_lineno += 1
