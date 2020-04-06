@@ -2,7 +2,7 @@
 leo kivikunnas 525925
 jaakko koskela 526050
 """
-import sys
+
 from anytree import Node, RenderTree
 from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
@@ -405,11 +405,8 @@ class LL1_parser:
             f.close()
 
 
-def main(argv):
+def main():
     filename = "input.txt"
-    if len(argv) > 0:
-        filename = argv[0]
-
     with open(filename) as f:
         data = f.read()
         data = data.rstrip("\n")
@@ -439,5 +436,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    argv = sys.argv[1:]
-    main(argv)
+    main()
