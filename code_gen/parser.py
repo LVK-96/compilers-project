@@ -4,7 +4,6 @@ jaakko koskela 526050
 """
 import sys
 from anytree import Node, RenderTree
-from parser_generator import gen_table
 from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
 from code_gen import CodeGenerator
