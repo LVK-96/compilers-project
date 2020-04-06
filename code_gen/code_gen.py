@@ -71,6 +71,9 @@ class CodeGenerator:
         # Continue jump target
         self.continue_jump_target = []
 
+        # Is the next case the first case
+        self.first_case_next = []
+
         # Is the addop + or -
         self.addop_type = []
         # Is the relop < or ==
@@ -406,6 +409,56 @@ class CodeGenerator:
         # Clear continue jump target
         self.continue_jump_target.pop()
 
+    def enter_switch_case(self):
+        self.first_case_next.append(True)
+
+    def save_case(self):
+        if not self.first_case_next[-1]:
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
+                                              [self.semantic_stack[-3][0], self.output_lineno],
+                                              [self.semantic_stack[-3][1], OperandTypes.LINENO],
+                                              self.semantic_stack[-2][0])
+            self.output[self.semantic_stack[-2][0]] = generated_3ac
+            del self.semantic_stack[-3:-1]
+
+        self.first_case_next[-1] = False
+
+        # Case to match is at the head - 1 of ss
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.EQ,
+                                          [self.semantic_stack[-1][0], self.semantic_stack[-2][0], self.next_temp_addr],
+                                          [self.semantic_stack[-1][1], self.semantic_stack[-2][1], OperandTypes.ADDRESSING])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+        self.semantic_stack.pop()
+        self.semantic_stack.append([self.next_temp_addr, OperandTypes.ADDRESSING])
+        self.increment_temp_addr()
+
+        # Save space for conditional jump over the case
+        self.backpatch_save()
+
+    def default_case(self):
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
+                                          [self.semantic_stack[-2][0], self.output_lineno],
+                                          [self.semantic_stack[-2][1], OperandTypes.LINENO],
+                                          self.semantic_stack[-1][0])
+        self.output[self.semantic_stack[-1][0]] = generated_3ac
+        del self.semantic_stack[-2:]
+
+        self.first_case_next[-1] = False
+
+    def exit_switch_case(self):
+        # Backpatch breaks
+        while len(self.break_counter) > 0:
+            generated_3ac = self.generate_3ac(ThreeAddressCodes.JP,
+                                              [self.output_lineno],
+                                              [OperandTypes.LINENO],
+                                              self.break_counter[-1][0])
+            self.output[self.break_counter[-1][0]] = generated_3ac
+            self.break_counter.pop()
+
+        self.first_case_next.pop()
+        self.semantic_stack.pop()
+
     def function_called(self):
         if self.function_call_stack[-1] != "output":
             # Copy the parameters
@@ -564,6 +617,14 @@ class CodeGenerator:
             self.cont()
         elif action_symbol == "#EXIT_WHILE":
             self.exit_while()
+        elif action_symbol == "#ENTER_SWITCH_CASE":
+            self.enter_switch_case()
+        elif action_symbol == "#SAVE_CASE":
+            self.save_case()
+        elif action_symbol == "#DEFAULT_CASE":
+            self.default_case()
+        elif action_symbol == "#EXIT_SWITCH_CASE":
+            self.exit_switch_case()
         elif action_symbol == "#FUNCTION_CALLED":
             self.function_called()
         elif action_symbol == "#EMPTY_RETURN":
