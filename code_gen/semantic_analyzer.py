@@ -11,6 +11,8 @@ class SemanticAnalyzer:
         self.symbol_table = symbol_table
         self.scope_stack = scope_stack
 
+        self.semantic_error_occured = False
+
         # Count params for functions in definitions
         self.param_counter_active = False
         self.param_counter = []
@@ -71,6 +73,7 @@ class SemanticAnalyzer:
         return lhs == rhs
 
     def report_error(self, lineno, msg):
+        self.semantic_error_occured = True
         error_msg = f"#{lineno} : Semantic Error! {msg}"
         self.errors.append(error_msg)
 
@@ -426,6 +429,8 @@ class SemanticAnalyzer:
             self.indexing()
         else:
             pass
+
+        return self.semantic_error_occured
 
     def write_errors_to_file(self):
         with open("semantic_errors.txt", "w") as f:

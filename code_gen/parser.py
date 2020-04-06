@@ -9,8 +9,7 @@ from scanner import Scanner, SymbolType
 from semantic_analyzer import SemanticAnalyzer
 from code_gen import CodeGenerator
 
-symbols = [";", ":", ",", "[", "]", "(", ")", "{", "}",
-           "+", "-", "*", "=", "<", "=="]
+symbols = [";", ":", ",", "[", "]", "(", ")", "{", "}", "+", "-", "*", "=", "<", "=="]
 keywords = ["if", "else", "void", "int", "while", "break",
             "continue", "switch", "default", "case", "return"]
 
@@ -133,6 +132,8 @@ class LL1_parser:
         self.tree = Node("Program")
         self.current_node = self.tree
         self.errors = []
+        self.syntax_error_occured = False
+        self.semantic_error_occured = False
         self.lineno = 1
         self.latest_type = None
         symbol_table = []
@@ -223,6 +224,7 @@ class LL1_parser:
         return shortest[0]
 
     def handle_error(self, production, to_compare):
+        self.syntax_error_occured = True
         orig_lineno = self.lineno
         if not production and self.stack[-1] in non_terminals:
             # Empty production
@@ -260,9 +262,11 @@ class LL1_parser:
             to_compare = 0
 
         if head.startswith("#"):
-            self.semantic_analyzer.semantic_actions(
+            self.semantic_error_occured = self.semantic_analyzer.semantic_actions(
                 head, self.input_ptr, self.latest_type, self.lineno)
-            self.code_gen.semantic_actions(head, self.input_ptr)
+            if not self.semantic_error_occured and not self.syntax_error_occured:
+                # Only run code gen if there are no errors
+                self.code_gen.semantic_actions(head, self.input_ptr)
             self.stack.pop()
 
         elif self.input_ptr[to_compare] == head:
