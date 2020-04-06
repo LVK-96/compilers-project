@@ -3,7 +3,6 @@ Leo Kivikunnas 525925
 Jaakko Koskela 526050
 """
 
-import pprint
 from enum import Enum
 from scanner import get_symbol_table_index, SymbolType
 
@@ -41,7 +40,6 @@ class CodeGenerator:
         self.variables_lower = 100
         self.variables_upper = 499
         self.temporaries_lower = 500
-        self.temporaries_upper = 1000
 
         # Next addres to allocate
         self.next_var_addr = self.variables_lower
@@ -130,7 +128,6 @@ class CodeGenerator:
 
     def increment_temp_addr(self, n=4):
         self.next_temp_addr += n
-        self.next_temp_addr %= self.temporaries_upper
 
     def backpatch_save(self):
         # Helper function for saving places for backpatching
@@ -426,7 +423,11 @@ class CodeGenerator:
         # Case to match is at the head - 1 of ss
         generated_3ac = self.generate_3ac(ThreeAddressCodes.EQ,
                                           [self.semantic_stack[-1][0], self.semantic_stack[-2][0], self.next_temp_addr],
-                                          [self.semantic_stack[-1][1], self.semantic_stack[-2][1], OperandTypes.ADDRESSING])
+                                          [
+                                              self.semantic_stack[-1][1],
+                                              self.semantic_stack[-2][1],
+                                              OperandTypes.ADDRESSING
+                                          ])
         self.output.append(generated_3ac)
         self.output_lineno += 1
         self.semantic_stack.pop()
