@@ -192,7 +192,7 @@ class CodeGenerator:
             self.function_params[self.current_function[-1]] = []
 
     def array_size(self, input_ptr):
-        # We are declaring a array of size input_ptr[1]
+        # We are declaring an array of size input_ptr[1]
         # Reserve enough space
 
         if self.symbol_table[-1]["address"] is not None:
