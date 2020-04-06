@@ -409,6 +409,16 @@ class CodeGenerator:
     def enter_switch_case(self):
         self.first_case_next.append(True)
 
+    def switch(self):
+        generated_3ac = self.generate_3ac(ThreeAddressCodes.ASSIGN,
+                                          [self.semantic_stack[-1][0], self.next_temp_addr],
+                                          [self.semantic_stack[-1][1], OperandTypes.ADDRESSING])
+        self.output.append(generated_3ac)
+        self.output_lineno += 1
+        self.semantic_stack.pop()
+        self.semantic_stack.append([self.next_temp_addr, OperandTypes.ADDRESSING])
+        self.increment_temp_addr()
+
     def save_case(self):
         if not self.first_case_next[-1]:
             generated_3ac = self.generate_3ac(ThreeAddressCodes.JPF,
@@ -620,6 +630,8 @@ class CodeGenerator:
             self.exit_while()
         elif action_symbol == "#ENTER_SWITCH_CASE":
             self.enter_switch_case()
+        elif action_symbol == "#SWITCH":
+            self.switch()
         elif action_symbol == "#SAVE_CASE":
             self.save_case()
         elif action_symbol == "#DEFAULT_CASE":

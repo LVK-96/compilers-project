@@ -19,7 +19,7 @@ Selection-stmt -> if ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) #S
 Iteration-stmt -> while #ENTER_WHILE ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) #SAVE Statement #EXIT_WHILE
 Return-stmt -> return Return-stmt-prime #RETURN
 Return-stmt-prime -> ; #EMPTY_RETURN | #START_TYPE_CHECK Expression #TYPE_CHECK ;
-Switch-stmt -> switch #ENTER_SWITCH_CASE ( #START_TYPE_CHECK Expression #TYPE_CHECK_IN_BRACKETS ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
+Switch-stmt -> switch #ENTER_SWITCH_CASE ( #START_TYPE_CHECK Expression #SWITCH #TYPE_CHECK_IN_BRACKETS ) { Case-stmts Default-stmt } #EXIT_SWITCH_CASE
 Case-stmts -> Case-stmt Case-stmts | EPSILON
 Case-stmt -> case #IMMEDIATE NUM #SAVE_CASE : Statement-list
 Default-stmt -> default : #DEFAULT_CASE Statement-list | EPSILON
